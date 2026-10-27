@@ -9,6 +9,8 @@ Upload a photo in the browser, map it to brand bead palettes, clean noise, follo
 - Live product mirror: [fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - Repository: [github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
 
+![Fast Bead — photo to perler pattern](./docs/images/screenshot.png)
+
 ## Feature highlights
 
 - **Photo → pattern**: Sample by bead grid; presets for photo fidelity, detail, hand-drawn look, and custom size / color count.
@@ -42,7 +44,7 @@ fast_bead/
   css/                # UI
   js/                 # palettes, quantize, craft, i18n
   templates/          # sample photo
-  docs/               # algorithm notes
+  docs/               # algorithm notes + screenshots
 ```
 
 Hub-only pieces (analytics Worker, paint handoff, Beadants level export) are stubbed or removed so the package runs alone.

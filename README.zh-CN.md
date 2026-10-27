@@ -9,6 +9,8 @@
 - 在线演示：[fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - 本仓库：[github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
 
+![Fast Bead 效果图：照片转拼豆图纸](./docs/images/screenshot.png)
+
 ## 功能亮点
 
 - **照片生成图纸**：按拼豆网格采样映射；提供写真高还原、细节、手绘感、自定义等预设，可调边长与色数。
@@ -42,7 +44,7 @@ fast_bead/
   css/                # 样式
   js/                 # 色板、量化、跟摆、i18n
   templates/          # 示例图
-  docs/               # 算法说明
+  docs/               # 算法说明与效果截图
 ```
 
 站点枢纽专属能力（分析 API、画板交接、Beadants 关卡导出）已剥离或改为 stub，本包可单独运行。
