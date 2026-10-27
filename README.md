@@ -6,6 +6,7 @@ Free open-source **Perler bead pattern maker**: turn a photo into a printable pa
 
 - Live product mirror: [fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - Repository: [github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
+- WeChat mini program: **李随便拼豆**
 
 ![Fast Bead — photo to perler pattern](./docs/images/screenshot.png)
 
