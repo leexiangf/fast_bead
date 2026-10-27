@@ -1,0 +1,16 @@
+{
+  "name": "fast-bead",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source photo to perler bead pattern generator",
+  "scripts": {
+    "start": "npx --yes serve -l 5173 .",
+    "serve": "npm start"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leexiangf/fast_bead.git"
+  },
+  "homepage": "https://github.com/leexiangf/fast_bead#readme"
+}

@@ -1,0 +1,1073 @@
+/**
+ * Brain-Off Arcade — craft / hub web chrome tokens
+ * Tone: candy / rainbow arcade (playful beads, not cold SaaS).
+ * Scope: body.arcade-ui on index hub / tools / guides.
+ * Do NOT apply to mini-game folders (beadants, Dino, evolve, etc.).
+ *
+ * Type: ChillRoundF / 寒蝉全圆体 (OFL). 方正喵呜体 needs Founder license.
+ */
+
+@font-face {
+  font-family: "ChillRoundF";
+  src: url("https://cdn.jsdelivr.net/npm/@fontpkg/chill-round-f@3.0.0/ChillRoundF.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "寒蝉全圆体";
+  src: url("https://cdn.jsdelivr.net/npm/@fontpkg/chill-round-f@3.0.0/ChillRoundF.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --px: 3px;
+
+  /* Candy night base — soft grape soda, not flat black */
+  --arcade-bg: #1a1230;
+  --arcade-elev: #24183f;
+  --arcade-surface: #312050;
+  --arcade-ink: #fff5fb;
+  --arcade-muted: #c9b4d8;
+  --arcade-line: rgba(255, 182, 220, 0.35);
+  --arcade-line-strong: rgba(255, 200, 120, 0.45);
+
+  /* Rainbow candy accents */
+  --arcade-pink: #ff6eb4;
+  --arcade-pink-deep: #e8459a;
+  --arcade-pink-dim: rgba(255, 110, 180, 0.22);
+  --arcade-orange: #ff9f43;
+  --arcade-lemon: #ffe66d;
+  --arcade-mint: #5ef0c0;
+  --arcade-sky: #6ecbff;
+  --arcade-lilac: #c79bff;
+  --arcade-danger: #ff5c7a;
+  --arcade-ok: #5ef0c0;
+
+  /* Primary = bubblegum; secondary (CTA / links) = sky */
+  --arcade-amber: var(--arcade-pink);
+  --arcade-amber-deep: var(--arcade-pink-deep);
+  --arcade-amber-dim: var(--arcade-pink-dim);
+  --arcade-copper: var(--arcade-sky);
+  --arcade-copper-dim: rgba(110, 203, 255, 0.22);
+  --arcade-teal: var(--arcade-sky);
+  --arcade-teal-dim: rgba(110, 203, 255, 0.22);
+  --arcade-sage: var(--arcade-mint);
+
+  /* 圆润甜美试看：ChillRoundF（OFL 寒蝉全圆体）。方正喵呜体需授权，本机安装后可改栈序优先 */
+  --arcade-display: "ChillRoundF", "寒蝉全圆体", "Noto Sans SC", system-ui, sans-serif;
+  --arcade-body: "ChillRoundF", "寒蝉全圆体", "Noto Sans SC", system-ui, sans-serif;
+  /* Light pixel snap — still soft candy, not full 8-bit */
+  --arcade-radius: 2px;
+  --arcade-radius-lg: 3px;
+  --arcade-chunk: calc(var(--px));
+
+  /* Soft candy chrome (hub cards / CTAs / chips) — bead rim, not hairline, not brick */
+  --arcade-radius-soft: 12px;
+  --arcade-radius-card: 16px;
+  --arcade-stroke: 2px;
+  --arcade-line-soft: rgba(255, 190, 230, 0.4);
+  --arcade-line-soft-hover: rgba(255, 200, 235, 0.65);
+  --arcade-shadow-soft: 0 4px 16px rgba(20, 8, 40, 0.32);
+
+  --arcade-rainbow: linear-gradient(
+    90deg,
+    #ff6eb4 0%,
+    #ff9f43 18%,
+    #ffe66d 36%,
+    #5ef0c0 54%,
+    #6ecbff 72%,
+    #c79bff 100%
+  );
+  /* Pastel candy rim — readable accent, content stays primary */
+  --arcade-rainbow-soft: linear-gradient(
+    135deg,
+    rgba(255, 170, 220, 0.55) 0%,
+    rgba(255, 210, 160, 0.48) 22%,
+    rgba(255, 240, 190, 0.42) 40%,
+    rgba(150, 235, 210, 0.48) 58%,
+    rgba(150, 210, 255, 0.52) 76%,
+    rgba(200, 180, 255, 0.52) 100%
+  );
+}
+
+@media (min-width: 900px) {
+  :root {
+    --px: 4px;
+  }
+}
+
+body.arcade-ui {
+  --bg: var(--arcade-bg);
+  --bg-elev: var(--arcade-elev);
+  --surface: var(--arcade-surface);
+  --line: var(--arcade-line);
+  --ink: var(--arcade-ink);
+  --muted: var(--arcade-muted);
+  --accent: var(--arcade-pink);
+  --accent-dim: var(--arcade-pink-dim);
+  --teal: var(--arcade-sky);
+  --teal-dim: var(--arcade-copper-dim);
+  --danger: var(--arcade-danger);
+  --ok: var(--arcade-ok);
+  --radius: var(--arcade-radius-lg);
+  --font: var(--arcade-body);
+  --display: var(--arcade-display);
+  color: var(--arcade-ink);
+  background: var(--arcade-bg);
+  font-family: var(--arcade-body);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Candy atmosphere — soft rainbow blobs, no scanline CRT */
+body.arcade-ui::before {
+  background:
+    radial-gradient(720px 420px at 8% -6%, rgba(255, 110, 180, 0.28), transparent 55%),
+    radial-gradient(640px 400px at 92% 4%, rgba(110, 203, 255, 0.22), transparent 52%),
+    radial-gradient(560px 360px at 48% 100%, rgba(94, 240, 192, 0.14), transparent 55%),
+    radial-gradient(480px 320px at 70% 40%, rgba(199, 155, 255, 0.12), transparent 50%),
+    linear-gradient(180deg, #221640 0%, var(--arcade-bg) 45%, #120a22 100%);
+}
+
+/* Candy sprinkle / bead dots (not engineering grid) */
+body.arcade-ui::after {
+  opacity: 0.55;
+  background-color: transparent;
+  background-image:
+    radial-gradient(circle at 30% 35%, rgba(255, 110, 180, 0.55) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 70% 65%, rgba(255, 230, 109, 0.5) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 55% 25%, rgba(94, 240, 192, 0.45) 0 1.25px, transparent 1.75px),
+    radial-gradient(circle at 20% 75%, rgba(110, 203, 255, 0.5) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 80% 40%, rgba(199, 155, 255, 0.48) 0 1.25px, transparent 1.75px),
+    radial-gradient(circle at 45% 85%, rgba(255, 159, 67, 0.42) 0 1.25px, transparent 1.75px);
+  background-size:
+    calc(var(--px) * 14) calc(var(--px) * 14),
+    calc(var(--px) * 18) calc(var(--px) * 16),
+    calc(var(--px) * 16) calc(var(--px) * 20),
+    calc(var(--px) * 20) calc(var(--px) * 14),
+    calc(var(--px) * 15) calc(var(--px) * 17),
+    calc(var(--px) * 17) calc(var(--px) * 19);
+  background-position:
+    0 0,
+    calc(var(--px) * 6) calc(var(--px) * 4),
+    calc(var(--px) * 3) calc(var(--px) * 8),
+    calc(var(--px) * 9) calc(var(--px) * 2),
+    calc(var(--px) * 2) calc(var(--px) * 10),
+    calc(var(--px) * 11) calc(var(--px) * 6);
+}
+
+/* —— Type: round-sweet (喵呜 / 寒蝉全圆) throughout (except form controls) —— */
+body.arcade-ui,
+body.arcade-ui .brand,
+body.arcade-ui .tool-hero h1,
+body.arcade-ui .tool-hero p,
+body.arcade-ui .panel__title,
+body.arcade-ui .adv > summary,
+body.arcade-ui .lang-toggle,
+body.arcade-ui .dropzone,
+body.arcade-ui .dropzone--lg,
+body.arcade-ui .craft-dock__title,
+body.arcade-ui .bead-side .stats,
+body.arcade-ui .bead-side .stats strong,
+body.arcade-ui .btn,
+body.arcade-ui .topnav__links,
+body.arcade-ui .notice,
+body.arcade-ui .tool-help,
+body.arcade-ui .faq,
+body.arcade-ui .footer,
+body.arcade-ui .legend,
+body.arcade-ui .handoff__hint,
+body.arcade-ui .stock-panel,
+body.arcade-ui .struct-panel,
+body.arcade-ui .cta-play {
+  font-family: var(--arcade-display);
+}
+
+body.arcade-ui .brand {
+  font-weight: 400;
+  color: var(--arcade-ink);
+  letter-spacing: 0.04em;
+}
+
+/* Keep solid color — clip-text eats thin display strokes */
+body.arcade-ui .brand span {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: var(--arcade-pink);
+}
+
+body.arcade-ui .tool-hero {
+  overflow: visible;
+}
+
+body.arcade-ui .tool-hero h1 {
+  font-size: clamp(1.7rem, 4.2vw, 2.3rem);
+  font-weight: 400; /* round display faces are often single-weight; avoid faux-bold */
+  line-height: 1.55;
+  padding: 0.2em 0 0.08em;
+  margin-bottom: 10px;
+  overflow: visible;
+  color: #fff8fc;
+  /* Halo so 豆 etc. thin top bars stay readable on dark */
+  text-shadow:
+    0 0 1px rgba(255, 248, 252, 0.95),
+    0 1px 0 rgba(255, 248, 252, 0.35),
+    0 -1px 0 rgba(255, 248, 252, 0.25),
+    0 0 22px rgba(255, 140, 200, 0.45);
+}
+
+body.arcade-ui .tool-hero p {
+  max-width: 36rem;
+  color: #e2cce8;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: 0.03em;
+}
+
+body.arcade-ui .topnav__links {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+body.arcade-ui .topnav__links a {
+  color: #c9b4d8;
+}
+
+body.arcade-ui .topnav__links a:hover {
+  color: var(--arcade-mint);
+}
+
+body.arcade-ui .topnav__links a.is-active {
+  color: var(--arcade-pink);
+}
+
+body.arcade-ui a {
+  color: var(--arcade-sky);
+}
+
+body.arcade-ui a:hover {
+  color: var(--arcade-lemon);
+}
+
+body.arcade-ui .btn {
+  font-family: var(--arcade-body);
+  font-weight: 400;
+}
+
+body.arcade-ui .field label,
+body.arcade-ui .field label span {
+  color: #e0c8f0;
+  font-weight: 400;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+body.arcade-ui .notice {
+  color: #c9b4d8;
+}
+
+body.arcade-ui .notice--warn {
+  color: var(--arcade-orange);
+  font-weight: 400;
+}
+
+body.arcade-ui .tool-help,
+body.arcade-ui .tool-help__list,
+body.arcade-ui .tool-help li {
+  color: #d4bfe6;
+}
+
+body.arcade-ui .tool-help .panel__title,
+body.arcade-ui .faq .panel__title,
+body.arcade-ui details summary {
+  color: var(--arcade-lilac);
+}
+
+body.arcade-ui .faq details summary,
+body.arcade-ui .tool-help details summary {
+  font-family: var(--arcade-body);
+  font-weight: 400;
+  color: #f0d8ff;
+}
+
+body.arcade-ui .faq details p,
+body.arcade-ui .tool-help details p {
+  color: #c9b4d8;
+}
+
+body.arcade-ui .footer,
+body.arcade-ui .footer p,
+body.arcade-ui .site-footer,
+body.arcade-ui .site-footer a,
+body.arcade-ui footer {
+  color: #a890bc;
+  font-weight: 400;
+}
+
+body.arcade-ui .bead-side .stats {
+  color: #d4bfe6;
+}
+
+body.arcade-ui .legend,
+body.arcade-ui .legend__label,
+body.arcade-ui .bead-summary,
+body.arcade-ui .bead-summary__buy {
+  color: #e0c8f0;
+}
+
+body.arcade-ui .handoff__hint,
+body.arcade-ui .stock-panel,
+body.arcade-ui .stock-panel .notice,
+body.arcade-ui .struct-panel__msg,
+body.arcade-ui .struct-panel__tips,
+body.arcade-ui .struct-panel__board {
+  color: #c9b4d8;
+}
+
+body.arcade-ui .craft-dock__row-label,
+body.arcade-ui .craft-dock__title {
+  color: var(--arcade-lemon);
+}
+
+/* Panels — same soft pastel rainbow rim as upload dropzone */
+body.arcade-ui .panel {
+  position: relative;
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  box-shadow: var(--arcade-shadow-soft);
+  background:
+    linear-gradient(180deg, #2c1c4a 0%, var(--arcade-elev) 100%) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  overflow: hidden;
+  image-rendering: auto;
+}
+
+body.arcade-ui .panel__title {
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
+  text-transform: none;
+  font-weight: 400;
+  line-height: 1.5;
+  padding-top: 0.15em;
+  color: #ffd6ee;
+}
+
+body.arcade-ui .btn {
+  border-radius: var(--arcade-radius-soft);
+  border-width: var(--arcade-stroke);
+  box-shadow: var(--arcade-shadow-soft);
+  transition: transform 0.15s ease, filter 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.arcade-ui .btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(20, 8, 40, 0.26);
+}
+
+/* Primary CTA — lemon candy; bright rim draws the eye */
+body.arcade-ui .btn--primary {
+  background: linear-gradient(180deg, #fff3a8 0%, var(--arcade-lemon) 48%, #f0c84a 100%);
+  border-color: #ffeef0;
+  color: #2a1840;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow:
+    var(--arcade-shadow-soft),
+    0 0 0 1px rgba(255, 230, 109, 0.35),
+    0 0 18px rgba(255, 230, 109, 0.28);
+}
+
+body.arcade-ui .btn--primary:hover {
+  filter: brightness(1.05);
+  color: #2a1840;
+  border-color: #fff8d6;
+  box-shadow:
+    0 6px 18px rgba(20, 8, 40, 0.35),
+    0 0 0 1px rgba(255, 240, 160, 0.55),
+    0 0 24px rgba(255, 230, 109, 0.4);
+}
+
+body.arcade-ui .btn--ghost {
+  border-color: transparent;
+  color: var(--arcade-ink);
+  box-shadow: none;
+  background:
+    linear-gradient(rgba(49, 32, 80, 0.55), rgba(49, 32, 80, 0.55)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .btn--ghost:hover {
+  border-color: transparent;
+  color: var(--arcade-ink);
+  background:
+    linear-gradient(var(--arcade-pink-dim), var(--arcade-pink-dim)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .btn--teal {
+  border-color: transparent;
+  color: #c8eeff;
+  background:
+    linear-gradient(var(--arcade-copper-dim), var(--arcade-copper-dim)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .btn--teal:hover {
+  border-color: transparent;
+  color: #fff;
+  background:
+    linear-gradient(rgba(110, 203, 255, 0.28), rgba(110, 203, 255, 0.28)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .lang-toggle {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  color: var(--arcade-muted);
+  box-shadow: none;
+  background:
+    linear-gradient(rgba(49, 32, 80, 0.55), rgba(49, 32, 80, 0.55)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .lang-toggle:hover {
+  border-color: transparent;
+  color: var(--arcade-pink);
+  background:
+    linear-gradient(var(--arcade-pink-dim), var(--arcade-pink-dim)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+/* Form controls: fixed height + centered text (Nunito/SC metric fix) */
+body.arcade-ui .field input[type="number"],
+body.arcade-ui .field input[type="text"],
+body.arcade-ui .field select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  box-shadow: none;
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--arcade-surface), var(--arcade-surface)),
+    var(--arcade-rainbow-soft);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  color: var(--arcade-ink);
+  /* Sans in controls — round display in boxes looks cramped */
+  font-family: "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: calc(40px - var(--arcade-stroke) * 2);
+  vertical-align: middle;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+body.arcade-ui .field select {
+  /* Native popup inherits light text otherwise → white-on-white */
+  color-scheme: dark;
+  background-color: var(--arcade-surface);
+  padding-right: 34px;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffb6dc' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"),
+    linear-gradient(var(--arcade-surface), var(--arcade-surface)),
+    var(--arcade-rainbow-soft);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: right 12px center, 0 0, 0 0;
+  background-size: 12px 8px, auto, auto;
+  background-origin: padding-box, padding-box, border-box;
+  background-clip: padding-box, padding-box, border-box;
+  cursor: pointer;
+}
+
+/* Opened list: force dark options (Windows/Chrome otherwise paints white panel + inherits ink) */
+body.arcade-ui select option,
+body.arcade-ui select optgroup,
+body.arcade-ui .field select option,
+body.arcade-ui .field select optgroup {
+  background-color: #312050;
+  color: #fff5fb;
+}
+
+body.arcade-ui select option:checked,
+body.arcade-ui .field select option:checked {
+  background-color: #4a3270;
+  color: #fff5fb;
+}
+
+body.arcade-ui .field input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+body.arcade-ui .field input[type="number"]::-webkit-outer-spin-button,
+body.arcade-ui .field input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+body.arcade-ui .field input[type="number"]:focus,
+body.arcade-ui .field input[type="text"]:focus,
+body.arcade-ui .field select:focus {
+  outline: 2px solid rgba(94, 240, 192, 0.55);
+  outline-offset: 1px;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+body.arcade-ui .field input[type="range"] {
+  accent-color: var(--arcade-pink);
+  height: auto;
+  line-height: normal;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* Buttons in params: same optical middle */
+body.arcade-ui .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  line-height: 1.2;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Upload dropzone — keep candy rainbow, thinner + softer than before */
+body.arcade-ui .dropzone {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  background:
+    linear-gradient(var(--arcade-surface), var(--arcade-surface)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: var(--arcade-muted);
+}
+
+body.arcade-ui .dropzone--lg {
+  font-family: var(--arcade-display);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--arcade-ink);
+}
+
+body.arcade-ui .dropzone:hover {
+  background:
+    linear-gradient(#3a2860, #3a2860) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  filter: brightness(1.05);
+  border-color: transparent;
+}
+
+/* Main preview — same soft rainbow rim; darker stage fill */
+body.arcade-ui .preview-stage,
+body.arcade-ui .panel.preview-stage {
+  position: relative;
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  background:
+    linear-gradient(#140c24, #140c24) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  box-shadow:
+    inset 0 0 24px rgba(40, 10, 60, 0.35),
+    var(--arcade-shadow-soft);
+  overflow: hidden;
+}
+
+body.arcade-ui .preview-stage canvas,
+body.arcade-ui .canvas-wrap canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+body.arcade-ui .bead-side .stats {
+  font-variant-numeric: tabular-nums;
+  gap: 8px 12px;
+}
+
+body.arcade-ui .bead-side .stats strong {
+  color: var(--arcade-lemon);
+  font-family: var(--arcade-display);
+  font-weight: 400;
+}
+
+/* Mini-game CTA — soft pastel rainbow rim (same family as dropzone) */
+body.arcade-ui .cta-play {
+  margin-top: 0;
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  outline: none;
+  background:
+    linear-gradient(180deg, rgba(110, 203, 255, 0.22) 0%, rgba(36, 24, 63, 0.95) 52%) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  box-shadow: var(--arcade-shadow-soft);
+  padding: calc(var(--px) * 4);
+}
+
+body.arcade-ui .cta-play .panel__title {
+  color: var(--arcade-mint);
+  font-size: 0.78rem;
+}
+
+body.arcade-ui .cta-play .field label {
+  color: var(--arcade-muted);
+}
+
+body.arcade-ui .tool-below__side .cta-play {
+  position: sticky;
+  top: 12px;
+}
+
+body.arcade-ui .adv > summary {
+  font-family: var(--arcade-display);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--arcade-lilac);
+}
+
+body.arcade-ui .craft-mode.is-active,
+body.arcade-ui .edit-tool.is-active {
+  border-color: transparent;
+  color: var(--arcade-pink);
+  background:
+    linear-gradient(var(--arcade-pink-dim), var(--arcade-pink-dim)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+/* —— Light pixel seasoning (not full CRT) —— */
+body.arcade-ui .tpl__thumb,
+body.arcade-ui .tpl button img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: var(--arcade-radius);
+  box-shadow: var(--arcade-chunk) var(--arcade-chunk) 0 0 rgba(40, 16, 70, 0.55);
+}
+
+body.arcade-ui .topnav__links a.is-active {
+  box-shadow: 0 var(--arcade-chunk) 0 0 var(--arcade-pink);
+}
+
+/* Dropzone soft candy rim already set above — do not re-apply chunky pixel shadow */
+
+/* —— Hub / guides (site.css hardcodes amber; retint to candy) —— */
+body.arcade-ui .hero__brand {
+  font-family: var(--arcade-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  color: var(--arcade-ink);
+  text-shadow:
+    0 0 1px rgba(255, 248, 252, 0.9),
+    0 0 22px rgba(255, 140, 200, 0.4);
+}
+
+body.arcade-ui .hero__brand em {
+  color: var(--arcade-pink);
+  font-style: normal;
+}
+
+body.arcade-ui .hero {
+  max-width: 52rem;
+}
+
+body.arcade-ui .hero__lead {
+  max-width: 48rem;
+  color: #e2cce8;
+  font-family: var(--arcade-body);
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+body.arcade-ui .section__title,
+body.arcade-ui .tool-card__title,
+body.arcade-ui .game-card__name {
+  font-family: var(--arcade-display);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+body.arcade-ui .section__hint,
+body.arcade-ui .tool-card__desc,
+body.arcade-ui .game-card__meta {
+  color: #c9b4d8;
+}
+
+body.arcade-ui .cat-jump a {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  color: var(--arcade-muted);
+  font-weight: 400;
+  box-shadow: none;
+  background:
+    linear-gradient(rgba(49, 32, 80, 0.5), rgba(49, 32, 80, 0.5)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  transition: color 0.15s ease, filter 0.15s ease, background 0.15s ease;
+}
+
+body.arcade-ui .cat-jump a:hover {
+  border-color: transparent;
+  color: var(--arcade-ink);
+  background:
+    linear-gradient(var(--arcade-pink-dim), var(--arcade-pink-dim)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .tool-card {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  /* Solid fill + pastel candy rim (same as dropzone) */
+  background:
+    linear-gradient(var(--arcade-elev), var(--arcade-elev)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  box-shadow: var(--arcade-shadow-soft);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+body.arcade-ui .tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(20, 8, 40, 0.4);
+  filter: brightness(1.04);
+  color: inherit;
+}
+
+body.arcade-ui .tool-card__tag {
+  color: #ffb6dc;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+body.arcade-ui .guide-row {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  box-shadow: none;
+  background:
+    linear-gradient(rgba(36, 24, 63, 0.7), rgba(36, 24, 63, 0.7)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .guide-row__label {
+  color: var(--arcade-lilac);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0.06em;
+}
+
+body.arcade-ui .privacy {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  color: #c9b4d8;
+  background:
+    linear-gradient(rgba(94, 240, 192, 0.1), rgba(94, 240, 192, 0.1)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+}
+
+body.arcade-ui .privacy strong {
+  color: var(--arcade-mint);
+}
+
+body.arcade-ui .game-card {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  box-shadow: var(--arcade-shadow-soft);
+  background:
+    linear-gradient(var(--arcade-elev), var(--arcade-elev)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, filter 0.15s ease;
+}
+
+body.arcade-ui .game-card:hover {
+  border-color: transparent;
+  color: inherit;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(20, 8, 40, 0.4);
+  filter: brightness(1.04);
+}
+
+body.arcade-ui .game-card__img {
+  image-rendering: auto;
+}
+
+body.arcade-ui .category {
+  border-top-color: var(--arcade-line);
+}
+
+/* Guide article chrome */
+body.arcade-ui .guide,
+body.arcade-ui .prose,
+body.arcade-ui article.panel {
+  font-family: var(--arcade-body);
+}
+
+body.arcade-ui .guide h1,
+body.arcade-ui .guide h2,
+body.arcade-ui .prose h1,
+body.arcade-ui .prose h2 {
+  font-family: var(--arcade-display);
+  font-weight: 400;
+}
+
+/* —— Custom candy select (replaces unstyled native mobile pickers) —— */
+.candy-select {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.candy-select__native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.candy-select__btn {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  border-radius: var(--arcade-radius-soft, 12px);
+  border: var(--arcade-stroke, 2px) solid transparent;
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--arcade-surface, #312050), var(--arcade-surface, #312050)),
+    var(--arcade-rainbow-soft, linear-gradient(90deg, #ff6eb4, #6ecbff));
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  color: var(--arcade-ink, #fff5fb);
+  font-family: "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.candy-select__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candy-select__chev {
+  flex-shrink: 0;
+  width: 12px;
+  height: 8px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffb6dc' d='M1 1l5 5 5-5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform 0.15s ease;
+}
+
+.candy-select.is-open .candy-select__chev {
+  transform: rotate(180deg);
+}
+
+.candy-select__btn:focus {
+  outline: 2px solid rgba(94, 240, 192, 0.55);
+  outline-offset: 1px;
+}
+
+/* Never let display:* beat [hidden] — that stacked every sheet on mobile */
+.candy-select__backdrop,
+.candy-select__panel,
+.candy-select__backdrop[hidden],
+.candy-select__panel[hidden] {
+  display: none !important;
+}
+
+.candy-select__panel {
+  box-sizing: border-box;
+  flex-direction: column;
+  border-radius: var(--arcade-radius-soft, 12px);
+  border: var(--arcade-stroke, 2px) solid transparent;
+  background:
+    linear-gradient(var(--arcade-elev, #24183f), var(--arcade-elev, #24183f)) padding-box,
+    var(--arcade-rainbow-soft, linear-gradient(90deg, #ff6eb4, #6ecbff)) border-box;
+  box-shadow: var(--arcade-shadow-soft, 0 8px 24px rgba(0, 0, 0, 0.35));
+}
+
+.candy-select__sheet-head {
+  display: none;
+}
+
+.candy-select__list {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.candy-select__group {
+  padding: 8px 10px 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--arcade-muted, #c9b4d8);
+}
+
+.candy-select__opt {
+  display: block;
+  width: 100%;
+  margin: 0 0 2px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--arcade-ink, #fff5fb);
+  font-family: "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.candy-select__opt:hover,
+.candy-select__opt:focus {
+  background: rgba(110, 203, 255, 0.14);
+  outline: none;
+}
+
+.candy-select__opt.is-active {
+  background: rgba(255, 230, 109, 0.18);
+  color: var(--arcade-lemon, #ffe66d);
+}
+
+.candy-select__opt:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Open sheet only (panels are portaled to body while open) */
+html.candy-select-sheet .candy-select__backdrop:not([hidden]) {
+  display: block !important;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(10, 6, 20, 0.62);
+}
+
+html.candy-select-sheet .candy-select__panel:not([hidden]) {
+  display: flex !important;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: 0;
+  z-index: 90;
+  max-height: min(72vh, 520px);
+  border-radius: 16px 16px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+}
+
+html.candy-select-sheet .candy-select__panel:not([hidden]) .candy-select__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 8px;
+  border-bottom: 1px solid rgba(201, 180, 216, 0.18);
+  flex-shrink: 0;
+}
+
+html.candy-select-sheet .candy-select__sheet-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--arcade-ink, #fff5fb);
+}
+
+html.candy-select-sheet .candy-select__sheet-close {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 180, 216, 0.35);
+  background: rgba(49, 32, 80, 0.8);
+  color: var(--arcade-muted, #c9b4d8);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+html.candy-select-sheet .candy-select__panel:not([hidden]) .candy-select__list {
+  max-height: none;
+  flex: 1 1 auto;
+  padding: 8px 10px 16px;
+}
+
+html.candy-select-sheet .candy-select__opt {
+  padding: 14px 12px;
+  font-size: 0.95rem;
+  min-height: 48px;
+}
+
+html.candy-select-lock,
+html.candy-select-lock body {
+  overflow: hidden;
+}
+
+body.arcade-ui .perler-m-config {
+  border-radius: var(--arcade-radius-soft);
+  border: var(--arcade-stroke) solid transparent;
+  background:
+    linear-gradient(var(--arcade-elev), var(--arcade-elev)) padding-box,
+    var(--arcade-rainbow-soft) border-box;
+  box-shadow: var(--arcade-shadow-soft);
+}
+
+@media (max-width: 720px) {
+  body.arcade-ui.perler-is-mobile .perler-m-config {
+    background:
+      linear-gradient(rgba(36, 24, 63, 0.96), rgba(36, 24, 63, 0.96)) padding-box,
+      var(--arcade-rainbow-soft) border-box;
+  }
+
+  body.arcade-ui.perler-is-mobile .perler-m-config .candy-select__btn {
+    min-height: 34px;
+    font-size: 0.78rem;
+  }
+
+  body.arcade-ui.perler-is-mobile .perler-m-edit .edit-panel {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.arcade-ui .btn,
+  body.arcade-ui .tool-card,
+  body.arcade-ui .cat-jump a {
+    transition: none;
+  }
+
+  .candy-select__chev {
+    transition: none;
+  }
+}

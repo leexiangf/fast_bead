@@ -1,0 +1,4632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fast Bead – Photo to Perler Pattern (open source)</title>
+  <meta name="description" content="Open-source photo → perler / fuse-bead pattern generator. Color mapping, craft mode, print export. Runs fully in the browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/site.css" />
+  <link rel="stylesheet" href="./css/arcade-tokens.css" />
+  </head>
+<body class="arcade-ui" data-i18n-title="meta.perler.title" data-i18n-desc="meta.perler.desc">
+  <div class="wrap wrap--wide wrap--tool-bleed">
+    <nav data-chrome-nav="perler"></nav>
+
+    <header class="tool-hero">
+      <h1 data-i18n="perler.h1"></h1>
+      <p data-i18n="perler.lead"></p>
+    </header>
+
+    <div class="workspace workspace--params2 workspace--perler">
+      <!-- Phone-only shells; desktop keeps the classic single params column -->
+      <section class="panel perler-m-upload" id="perler-m-upload" hidden>
+        <div class="params-grid params-grid--pairs" id="perler-m-upload-grid"></div>
+      </section>
+      <!-- Phone-only: essentials + params stacked above preview -->
+      <section class="panel perler-m-config" id="perler-m-config" hidden>
+        <div class="panel__title perler-m-config__title" data-i18n="perler.config"></div>
+        <div class="perler-m-quick__grid" id="perler-m-quick-grid"></div>
+        <div class="perler-m-config__rest" id="perler-m-config-rest"></div>
+      </section>
+
+      <aside class="panel panel--params" id="perler-params">
+        <div class="panel__title perler-params__title" data-i18n="common.params"></div>
+        <div class="params-grid params-grid--pairs" id="perler-params-grid">
+          <!-- Right dropzone spans template + grid-size rows; preset/palette/ncolors shift down -->
+          <div class="params-pair" data-m-slot="upload">
+            <div class="params-cell params-cell--left" id="slot-tpl">
+              <div class="tpl tpl--compact" id="tpl-panel">
+                <div class="panel__title" data-i18n="perler.tpl.title"></div>
+                <div class="tpl__tabs" id="tpl-tabs" role="tablist" hidden></div>
+                <div class="tpl__grid tpl__grid--single" id="tpl-grid"></div>
+              </div>
+            </div>
+            <div class="params-cell params-cell--right params-cell--drop-span" id="slot-drop">
+              <div class="dropzone dropzone--lg dropzone--params" id="drop">
+                <span data-i18n="common.drop"></span>
+                <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/*" />
+              </div>
+              <button type="button" class="btn btn--ghost btn--rotate-src" id="btn-rotate" disabled data-i18n="perler.rotate"></button>
+            </div>
+          </div>
+
+          <div class="params-pair" data-m-slot="side">
+            <div class="params-cell params-cell--left" id="slot-side">
+              <div class="field">
+                <label for="side"><span data-i18n="perler.side"></span> <span id="side-hint">96</span></label>
+                <input id="side" type="range" min="32" max="144" value="96" />
+              </div>
+            </div>
+          </div>
+
+          <div class="params-pair">
+            <div class="params-cell params-cell--left">
+              <div class="field">
+                <label for="fit" data-i18n="perler.fit"></label>
+                <select id="fit">
+                  <option value="cover" selected data-i18n="perler.fit.cover"></option>
+                  <option value="contain" data-i18n="perler.fit.contain"></option>
+                  <option value="stretch" data-i18n="perler.fit.stretch"></option>
+                </select>
+              </div>
+            </div>
+            <div class="params-cell params-cell--right" id="slot-preset">
+              <div class="field">
+                <label for="preset" data-i18n="perler.preset"></label>
+                <select id="preset">
+                  <option value="photo" selected data-i18n="perler.preset.photo"></option>
+                  <option value="detail" data-i18n="perler.preset.detail"></option>
+                  <option value="beadants" data-i18n="perler.preset.beadants"></option>
+                  <option value="handlike" data-i18n="perler.preset.handlike"></option>
+                  <option value="custom" data-i18n="perler.preset.custom"></option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="params-pair">
+            <div class="params-cell params-cell--left" id="slot-dither">
+              <div class="field">
+                <label for="dither" data-i18n="perler.dither"></label>
+                <select id="dither">
+                  <option value="fs" selected data-i18n="perler.dither.fs"></option>
+                  <option value="fs-v2" data-i18n="perler.dither.fsV2"></option>
+                  <option value="bayer" data-i18n="perler.dither.bayer"></option>
+                  <option value="none" data-i18n="perler.dither.none"></option>
+                  <option value="handlike" data-i18n="perler.dither.handlike"></option>
+                </select>
+              </div>
+            </div>
+            <div class="params-cell params-cell--right" id="slot-palette">
+              <div class="field">
+                <label for="palette" data-i18n="perler.palette"></label>
+                <select id="palette"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="params-pair">
+            <div class="params-cell params-cell--left">
+              <div class="field">
+                <label for="view" data-i18n="perler.view"></label>
+                <select id="view">
+                  <option value="beads" selected data-i18n="perler.view.beads"></option>
+                  <option value="pixels" data-i18n="perler.view.pixels"></option>
+                </select>
+              </div>
+            </div>
+            <div class="params-cell params-cell--right">
+              <div class="field" id="field-ncolors">
+                <label for="ncolors" data-i18n="perler.ncolors"></label>
+                <input id="ncolors" type="number" min="8" max="48" value="28" />
+              </div>
+            </div>
+          </div>
+
+          <div class="params-pair params-pair--footer">
+            <div class="params-cell params-cell--span">
+              <details class="adv" id="adv">
+                <summary data-i18n="perler.adv"></summary>
+                <div class="adv__body adv__body--cols">
+                  <div class="field">
+                    <label for="contrast"><span data-i18n="perler.contrast"></span> <span id="contrast-val">1.08</span></label>
+                    <input id="contrast" type="range" min="80" max="140" value="108" />
+                  </div>
+                  <div class="field">
+                    <label for="sat"><span data-i18n="perler.sat"></span> <span id="sat-val">1.05</span></label>
+                    <input id="sat" type="range" min="70" max="140" value="105" />
+                  </div>
+                  <div class="field">
+                    <label for="cell" data-i18n="perler.cell"></label>
+                    <input id="cell" type="number" min="4" max="20" value="8" />
+                  </div>
+                  <div class="field">
+                    <label><input type="checkbox" id="gridlines" /> <span data-i18n="perler.grid"></span></label>
+                  </div>
+                  <div class="field" id="field-rm-bg-tol">
+                    <label for="rm-bg-tol"><span data-i18n="perler.rmBg.tol"></span> <span id="rm-bg-tol-val">36</span></label>
+                    <input id="rm-bg-tol" type="range" min="8" max="96" value="36" disabled />
+                    <p class="notice" data-i18n="perler.rmBg.hint"></p>
+                    <p class="notice" data-i18n="perler.erase.hint"></p>
+                  </div>
+                </div>
+              </details>
+            </div>
+            <div class="params-cell params-cell--span" id="slot-edit">
+              <div class="edit-panel" id="edit-panel" hidden>
+                <div class="panel__title" data-i18n="perler.edit.title"></div>
+                <p class="edit-panel__hint" data-i18n="perler.edit.tapHint" hidden></p>
+                  <div class="edit-tools" id="edit-tools" role="toolbar">
+                  <button type="button" class="btn btn--ghost edit-tool is-active" data-edit="paint" data-i18n="perler.edit.paint"></button>
+                  <button type="button" class="btn btn--ghost edit-tool" data-edit="bucket" data-i18n="perler.edit.bucket"></button>
+                  <button type="button" class="btn btn--ghost edit-tool" data-edit="replace" data-i18n="perler.edit.replace"></button>
+                  <button type="button" class="btn btn--ghost edit-tool" data-edit="eraser" data-i18n="perler.edit.eraser"></button>
+                  <button type="button" class="btn btn--ghost edit-tool" data-edit="erase-fill" data-i18n="perler.edit.eraseFill"></button>
+                  <button type="button" class="btn btn--ghost" id="btn-edit-undo" disabled data-i18n="perler.edit.undo"></button>
+                </div>
+                <div class="field field--inline" id="field-erase-brush">
+                  <label for="erase-brush"><span data-i18n="perler.erase.brush"></span> <span id="erase-brush-val">1</span></label>
+                  <input id="erase-brush" type="range" min="1" max="5" value="1" />
+                </div>
+                <div class="edit-swatches" id="edit-swatches"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="params-pair params-pair--sparse">
+            <div class="params-cell params-cell--span">
+              <div class="edit-sparse" id="edit-sparse">
+                <div class="edit-sparse__title" data-i18n="perler.sparse.title"></div>
+                <div class="edit-sparse__row">
+                  <label for="sparse-thr">
+                    <span data-i18n="perler.sparse.thr"></span>
+                    <input id="sparse-thr" type="number" min="1" max="20" value="5" step="1" />
+                  </label>
+                  <button type="button" class="btn btn--ghost" id="btn-sparse-merge" data-i18n="perler.sparse.merge"></button>
+                </div>
+                <p class="edit-sparse__hint" data-i18n="perler.sparse.hint"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="panel preview-stage" id="preview-stage">
+        <div class="craft-dock" id="craft-dock-bar" title="">
+          <div class="craft-dock__preview-toggles" id="preview-toggles" role="group">
+            <button type="button" class="btn btn--ghost" id="btn-show-codes" disabled data-i18n="perler.codes.toggle" aria-pressed="false"></button>
+            <button type="button" class="btn btn--ghost" id="btn-rm-bg" disabled data-i18n="perler.rmBg.toggle" aria-pressed="false"></button>
+            <button type="button" class="btn btn--ghost" id="btn-erase" disabled data-i18n="perler.erase.toggle" aria-pressed="false"></button>
+            <button type="button" class="btn btn--ghost" id="btn-erase-fill" disabled data-i18n="perler.erase.fill" aria-pressed="false"></button>
+            <button type="button" class="btn btn--ghost" id="btn-mirror" disabled data-i18n="perler.mirror.toggle" aria-pressed="false"></button>
+            <button type="button" class="btn btn--ghost" id="btn-pan" disabled data-i18n="perler.pan.toggle" aria-pressed="false"></button>
+            <span class="craft-dock__zoom-group" role="group" aria-label="zoom">
+              <input type="range" id="zoom-slider" class="craft-dock__zoom-slider" min="25" max="400" step="1" value="100" disabled />
+              <span class="craft-dock__zoom-pct" id="zoom-pct" aria-hidden="true">100%</span>
+              <button type="button" class="btn btn--ghost" id="btn-zoom-reset" disabled data-i18n="perler.zoom.reset"></button>
+            </span>
+          </div>
+          <div class="craft-dock__tools" id="craft-dock" hidden>
+            <div class="craft-dock__modes" role="group">
+              <button type="button" class="btn btn--ghost craft-mode is-active" data-craft-mode="color" data-i18n="perler.craft.byColor"></button>
+              <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="row" data-i18n="perler.craft.byRow"></button>
+            </div>
+            <div class="craft-dock__row" id="craft-row-ctrl" hidden>
+              <button type="button" class="btn btn--ghost" id="craft-row-prev" data-i18n="perler.craft.rowPrev"></button>
+              <span class="craft-dock__row-label" id="craft-row-label">1 / 1</span>
+              <button type="button" class="btn btn--ghost" id="craft-row-next" data-i18n="perler.craft.rowNext"></button>
+            </div>
+            <div class="craft-step" id="craft-step" hidden>
+              <span class="craft-step__tag" data-i18n="perler.craft.stepTag">逐颗</span>
+              <button type="button" class="btn btn--ghost craft-step__nav" id="craft-step-prev" aria-label="prev bead" data-i18n-aria="perler.craft.stepPrev" title="">◀</button>
+              <div class="craft-step__focus" id="craft-step-focus" aria-live="polite">
+                <span class="craft-step__coord" id="craft-step-coord">—</span>
+                <span class="craft-step__meta" id="craft-step-meta"></span>
+              </div>
+              <button type="button" class="btn btn--ghost craft-step__nav craft-step__nav--primary" id="craft-step-next" aria-label="next bead" data-i18n-aria="perler.craft.stepNext" title="">下一颗 ▶</button>
+            </div>
+            <button type="button" class="btn btn--ghost is-active" id="btn-craft-axis" data-i18n="perler.craft.axis" aria-pressed="true"></button>
+          </div>
+          <div class="craft-dock__end">
+            <div class="craft-draft" id="craft-draft-wrap">
+              <button type="button" class="btn btn--ghost craft-draft__toggle" id="btn-draft-toggle" disabled data-i18n="perler.draft.title" aria-expanded="false" aria-controls="draft-panel">草稿</button>
+              <div class="craft-draft__flyout" id="draft-panel" hidden>
+                <p class="notice draft-panel__hint" data-i18n="perler.draft.hint"></p>
+                <div class="draft-panel__actions">
+                  <button type="button" class="btn btn--ghost" id="btn-draft-save" disabled data-i18n="perler.draft.save"></button>
+                </div>
+                <p class="draft-panel__bound" id="draft-bound" hidden></p>
+                <ul class="draft-list" id="draft-list"></ul>
+              </div>
+            </div>
+            <button type="button" class="btn btn--ghost btn--craft" id="btn-craft" disabled data-i18n="perler.craft.toggle"></button>
+          </div>
+        </div>
+        <p class="banner-import" id="import-banner" hidden data-i18n="handoff.imported"></p>
+        <p class="banner-import" id="palette-banner" hidden></p>
+        <div class="canvas-wrap canvas-wrap--edit" id="craft-viewport">
+          <div class="craft-axis-corner" id="craft-axis-corner" hidden aria-hidden="true"></div>
+          <div class="craft-axis-rail craft-axis-rail--x" id="craft-axis-x" hidden aria-hidden="true"></div>
+          <div class="craft-axis-rail craft-axis-rail--y" id="craft-axis-y" hidden aria-hidden="true"></div>
+          <div class="craft-pin" id="craft-pin" hidden>
+            <span class="craft-pin__box" aria-hidden="true"></span>
+            <span class="craft-pin__label" id="craft-pin-label"></span>
+          </div>
+          <div class="craft-stage" id="craft-stage">
+            <canvas id="out"></canvas>
+          </div>
+        </div>
+        <!-- Phone-only host: edit tools sit under the pattern -->
+        <div class="perler-m-edit" id="perler-m-edit" hidden></div>
+      </div>
+
+      <aside class="panel bead-side" id="bead-side">
+        <div class="panel__title" data-i18n="perler.beadInfo"></div>
+        <div class="stats" id="stats" data-i18n="common.noImage"></div>
+        <div class="bead-summary" id="bead-summary" hidden>
+          <div class="bead-summary__head">
+            <div class="bead-summary__total" id="bead-total"></div>
+            <p class="bead-summary__buy" id="bead-buy"></p>
+          </div>
+          <ol class="bead-summary__list" id="bead-list"></ol>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="struct-panel" id="struct-panel" hidden>
+          <div class="panel__title" data-i18n="perler.struct.title"></div>
+          <p class="struct-panel__msg" id="struct-msg"></p>
+          <p class="struct-panel__tips" id="struct-tips"></p>
+          <div class="panel__title struct-panel__board-title" data-i18n="perler.board.title"></div>
+          <p class="struct-panel__board" id="board-advice"></p>
+        </div>
+        <details class="stock-panel" id="stock-panel">
+          <summary data-i18n="perler.stock.title"></summary>
+          <p class="notice" data-i18n="perler.stock.hint"></p>
+          <label class="stock-panel__check">
+            <input type="checkbox" id="stock-enabled" />
+            <span data-i18n="perler.stock.enable"></span>
+          </label>
+          <label class="stock-panel__check">
+            <input type="checkbox" id="stock-only" />
+            <span data-i18n="perler.stock.only"></span>
+          </label>
+          <p class="notice stock-panel__auto" id="stock-auto-hint" hidden data-i18n="perler.stock.autoHint"></p>
+          <div class="stock-swatches" id="stock-swatches"></div>
+          <div class="actions__row stock-panel__actions">
+            <button type="button" class="btn btn--ghost" id="btn-stock-all" data-i18n="perler.stock.all"></button>
+            <button type="button" class="btn btn--ghost" id="btn-stock-none" data-i18n="perler.stock.none"></button>
+          </div>
+        </details>
+        <!-- Below stock panel so opening this block does not shove swatches / scroll upward -->
+        <div class="stock-missing" id="stock-missing" hidden></div>
+      </aside>
+    </div>
+
+    <section class="tool-below panel" aria-label="export">
+      <div class="tool-below__grid">
+        <div class="tool-below__main">
+          <div class="panel__title" data-i18n="perler.belowTitle"></div>
+          <div class="actions actions--stack" id="export-actions">
+            <div class="actions__row">
+              <button type="button" class="btn btn--primary" id="btn-export" disabled data-i18n="perler.export"></button>
+              <button type="button" class="btn btn--primary" id="btn-export-codes" disabled data-i18n="perler.exportCodes"></button>
+              <button type="button" class="btn btn--primary" id="btn-print" disabled data-i18n="perler.print"></button>
+              <button type="button" class="btn btn--ghost" id="btn-csv" disabled data-i18n="perler.csv"></button>
+            </div>
+            <p class="notice" data-i18n="perler.export.hint"></p>
+            <details class="adv" id="print-settings">
+              <summary data-i18n="perler.print.settings"></summary>
+              <div class="adv__body adv__body--cols">
+                <div class="field">
+                  <label for="print-tile" data-i18n="perler.print.tile"></label>
+                  <select id="print-tile">
+                    <option value="0" selected data-i18n="perler.print.tile0"></option>
+                    <option value="29" data-i18n="perler.print.tile29"></option>
+                    <option value="58" data-i18n="perler.print.tile58"></option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label><input type="checkbox" id="print-major" checked /> <span data-i18n="perler.print.major"></span></label>
+                </div>
+                <div class="field">
+                  <label><input type="checkbox" id="print-cell-codes" /> <span data-i18n="perler.print.cellCodes"></span></label>
+                </div>
+                <div class="field">
+                  <label for="pitch-family" data-i18n="perler.pitch.family"></label>
+                  <select id="pitch-family">
+                    <option value="midi" selected data-i18n="perler.pitch.midi"></option>
+                    <option value="mini" data-i18n="perler.pitch.mini"></option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="print-pitch"><span data-i18n="perler.print.pitch"></span></label>
+                  <input id="print-pitch" type="number" min="2.5" max="10" step="0.1" value="5" />
+                </div>
+                <p class="notice notice--warn" id="pitch-warn" hidden data-i18n="perler.pitch.warn"></p>
+                <p class="notice" data-i18n="perler.print.hint"></p>
+              </div>
+            </details>
+            <!-- paint handoff removed in OSS build -->
+            <div class="handoff" id="handoff-paint" hidden></div>
+          </div>
+        </div>
+        <div class="tool-below__side">
+          <!-- Beadants game CTA removed in OSS build; keep hidden shells so JS ids resolve -->
+          <div class="cta-play" id="cta-play" hidden>
+            <p class="notice" id="cta-hint" hidden></p>
+            <div class="field" id="field-lname" hidden>
+              <label for="lname"></label>
+              <input id="lname" type="text" value="Custom" maxlength="40" />
+            </div>
+            <p class="notice" id="level-hint" hidden></p>
+            <div class="actions actions--stack" hidden>
+              <button type="button" id="btn-cta-9" hidden></button>
+              <a id="btn-play" href="#" hidden></a>
+              <button type="button" id="btn-level" hidden></button>
+            </div>
+            <p class="notice" id="level-cards" hidden></p>
+            <a id="link-chart" href="https://fastgames.cn/tools/bead-chart/" hidden></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-help panel">
+      <div class="panel__title" data-i18n="common.help"></div>
+      <ul class="tool-help__list">
+        <li id="tip" data-i18n="perler.tip.photo"></li>
+        <li data-i18n="perler.stock.help"></li>
+        <li data-i18n="perler.craft.help"></li>
+        <li data-i18n="perler.struct.help"></li>
+        <li data-i18n="perler.board.help"></li>
+        <li data-i18n="perler.edit.hint"></li>
+        <li data-i18n="perler.tpl.hint"></li>
+      </ul>
+    </section>
+
+    <section class="faq panel" id="faq" aria-labelledby="faq-title">
+      <div class="panel__title" id="faq-title" data-i18n="perler.faq.title"></div>
+      <div class="faq__list">
+        <details><summary data-i18n="perler.faq.q1"></summary><p data-i18n="perler.faq.a1"></p></details>
+        <details><summary data-i18n="perler.faq.q2"></summary><p data-i18n="perler.faq.a2"></p></details>
+        <details><summary data-i18n="perler.faq.q3"></summary><p data-i18n="perler.faq.a3"></p></details>
+        <details><summary data-i18n="perler.faq.q4"></summary><p data-i18n="perler.faq.a4"></p></details>
+        <details><summary data-i18n="perler.faq.q5"></summary><p data-i18n="perler.faq.a5"></p></details>
+        <details><summary data-i18n="perler.faq.q6"></summary><p data-i18n="perler.faq.a6"></p></details>
+        <details><summary data-i18n="perler.faq.q7"></summary><p data-i18n="perler.faq.a7"></p></details>
+        <details><summary data-i18n="perler.faq.q8"></summary><p data-i18n="perler.faq.a8"></p></details>
+        <details><summary data-i18n="perler.faq.q9"></summary><p data-i18n="perler.faq.a9"></p></details>
+        <details><summary data-i18n="perler.faq.q10"></summary><p data-i18n="perler.faq.a10"></p></details>
+        <details><summary data-i18n="perler.faq.q11"></summary><p data-i18n="perler.faq.a11"></p></details>
+        <details><summary data-i18n="perler.faq.q12"></summary><p data-i18n="perler.faq.a12"></p></details>
+        <details><summary data-i18n="perler.faq.q13"></summary><p data-i18n="perler.faq.a13"></p></details>
+        <details><summary data-i18n="perler.faq.q14"></summary><p data-i18n="perler.faq.a14"></p></details>
+      </div>
+    </section>
+
+    <p class="related">
+      <span data-i18n="common.related"></span>
+      <a href="https://fastgames.cn/tools/perler/" rel="noopener">Live site</a>
+      <a href="https://github.com/leexiangf/fast_bead" rel="noopener">GitHub</a>
+      <a href="./docs/bead-fs-v2-algorithm.md" rel="noopener">FS v2 notes</a>
+    </p>
+    <footer class="footer"><p>Fast Bead · MIT · Runs locally in your browser</p></footer>
+  </div>
+
+  <noscript>
+    <section class="seo-crawl">
+      <h2>Fast Bead</h2>
+      <p>Enable JavaScript to convert photos into perler bead patterns in your browser.</p>
+    </section>
+  </noscript>
+
+  <div id="export-pick" class="export-pick" hidden>
+    <div class="export-pick__card" role="dialog" aria-modal="true" aria-labelledby="export-pick-title">
+      <p class="export-pick__title" id="export-pick-title" data-i18n="perler.export.pickTitle"></p>
+      <p class="export-pick__hint" data-i18n="perler.export.pickHint"></p>
+      <label class="export-pick__opt">
+        <input type="checkbox" id="export-pick-legend" checked />
+        <span data-i18n="perler.export.optLegend"></span>
+      </label>
+      <label class="export-pick__opt">
+        <input type="checkbox" id="export-pick-grid" checked />
+        <span data-i18n="perler.export.optGrid"></span>
+      </label>
+      <div class="export-pick__ink" id="export-pick-ink-wrap">
+        <div class="export-pick__ink-head">
+          <span data-i18n="perler.export.gridInk"></span>
+          <span class="export-pick__ink-val" id="export-pick-ink-label"></span>
+        </div>
+        <canvas
+          id="export-pick-ink-preview"
+          class="export-pick__ink-preview"
+          width="168"
+          height="84"
+          aria-hidden="true"
+        ></canvas>
+        <input
+          type="range"
+          id="export-pick-ink"
+          min="0"
+          max="100"
+          value="50"
+          step="1"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="50"
+        />
+        <div class="export-pick__ink-ends">
+          <span data-i18n="perler.export.gridInkLight"></span>
+          <span data-i18n="perler.export.gridInkDark"></span>
+        </div>
+      </div>
+      <p class="export-pick__note" data-i18n="perler.export.pickNote"></p>
+      <div class="export-pick__actions">
+        <button type="button" class="btn btn--primary" id="export-pick-ok" data-i18n="perler.export.confirm"></button>
+        <button type="button" class="btn btn--ghost" id="export-pick-cancel" data-i18n="common.cancel"></button>
+      </div>
+    </div>
+  </div>
+  <style>
+    .export-pick {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(16, 10, 24, 0.55);
+      padding: 16px;
+    }
+    .export-pick[hidden] { display: none !important; }
+    .export-pick__card {
+      width: min(380px, 100%);
+      padding: 18px 16px;
+      border-radius: 12px;
+      background: var(--arcade-elev, #24183f);
+      color: var(--arcade-ink, #fff5fb);
+    }
+    .export-pick__title { margin: 0 0 8px; font-size: 1rem; }
+    .export-pick__hint {
+      margin: 0 0 12px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      opacity: 0.85;
+    }
+    .export-pick__opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0 0 8px;
+      font-size: 0.92rem;
+      line-height: 1.35;
+      cursor: pointer;
+    }
+    .export-pick__opt input { margin-top: 3px; flex: 0 0 auto; }
+    .export-pick__ink {
+      margin: 2px 0 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .export-pick__ink[hidden] { display: none !important; }
+    .export-pick__ink-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+    }
+    .export-pick__ink-val { opacity: 0.85; }
+    .export-pick__ink-preview {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 0 0 8px;
+      border-radius: 6px;
+      background: #fff;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .export-pick__ink input[type="range"] {
+      width: 100%;
+      margin: 0;
+      accent-color: var(--arcade-lemon, #ffe566);
+    }
+    .export-pick__ink-ends {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 0.72rem;
+      opacity: 0.7;
+    }
+    .export-pick__note {
+      margin: 4px 0 14px;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      opacity: 0.75;
+    }
+    .export-pick__actions { display: flex; flex-direction: column; gap: 8px; }
+  </style>
+
+  <div class="tool-sticky" id="sticky-export" hidden>
+    <button type="button" class="btn btn--primary" id="sticky-png" disabled data-i18n="perler.exportShort"></button>
+    <button type="button" class="btn btn--primary" id="sticky-codes" disabled data-i18n="perler.exportCodesShort"></button>
+    <button type="button" class="btn btn--primary" id="sticky-print" disabled data-i18n="perler.printShort"></button>
+  </div>
+
+  <script src="./js/i18n.js"></script>
+  <script src="./js/candy-select.js"></script>
+  <script src="./js/chrome-oss.js"></script>
+  <script src="./js/palette-mard-185.js"></script>
+  <script src="./js/palette-mard-221.js"></script>
+  <script src="./js/palette-mard-291.js"></script>
+  <script src="./js/palette-coco-291.js"></script>
+  <script src="./js/palette-manman-278.js"></script>
+  <script src="./js/palette-panpan-289.js"></script>
+  <script src="./js/palette-mixiaowo-290.js"></script>
+  <script src="./js/palette-artkal-s.js"></script>
+  <script src="./js/palette-artkal-a.js"></script>
+  <script src="./js/palette-artkal-c197.js"></script>
+  <script src="./js/palette-artkal-m221.js"></script>
+  <script src="./js/palette-artkal-418.js"></script>
+  <script src="./js/palette-artkal-r.js"></script>
+  <script src="./js/palette-perler-midi.js"></script>
+  <script src="./js/palette-perler-mini.js"></script>
+  <script src="./js/palette-hama-midi.js"></script>
+  <script src="./js/palette-hama-mini.js"></script>
+  <script src="./js/palette-hama-maxi.js"></script>
+  <script src="./js/palette-nabbi.js"></script>
+  <script src="./js/palette-yant.js"></script>
+  <script src="./js/palettes.js"></script>
+  <script src="./js/bead-stock.js"></script>
+  <script src="./js/bead-craft-progress.js"></script>
+  <script src="./js/bead-craft-drafts.js"></script>
+  <script src="./js/bead-structure.js"></script>
+  <script src="./js/image-utils.js"></script>
+  <script src="./js/bead-handlike.js"></script>
+  <script src="./js/bead-fs-v2.js"></script>
+  <script src="./js/perler-templates.js"></script>
+  <script src="./js/bead-level-stub.js"></script>
+  <script src="./js/tool-stub.js"></script>
+  <script>
+    (function () {
+      const { FGPalettes, FGBeadStock, FGImage, FGBeadHandlike, FGBeadFsV2, FGi18n, FGTool, FGBeadLevel, FGPerlerTemplates } = window;
+      const t = (k) => FGi18n.t(k);
+      const drop = document.getElementById("drop");
+      const btnRotate = document.getElementById("btn-rotate");
+      const presetEl = document.getElementById("preset");
+      const sideEl = document.getElementById("side");
+      const sideHint = document.getElementById("side-hint");
+      const fitEl = document.getElementById("fit");
+      const palEl = document.getElementById("palette");
+      const nEl = document.getElementById("ncolors");
+      const fieldN = document.getElementById("field-ncolors");
+      const ditherEl = document.getElementById("dither");
+      const contrastEl = document.getElementById("contrast");
+      const satEl = document.getElementById("sat");
+      const contrastVal = document.getElementById("contrast-val");
+      const satVal = document.getElementById("sat-val");
+      const viewEl = document.getElementById("view");
+      const cellEl = document.getElementById("cell");
+      const gridEl = document.getElementById("gridlines");
+      const canvas = document.getElementById("out");
+      const craftViewport = document.getElementById("craft-viewport");
+      const craftStage = document.getElementById("craft-stage");
+      const craftDock = document.getElementById("craft-dock");
+      const craftDockBar = document.getElementById("craft-dock-bar");
+      const craftRowCtrl = document.getElementById("craft-row-ctrl");
+      const craftRowLabel = document.getElementById("craft-row-label");
+      const craftAxisX = document.getElementById("craft-axis-x");
+      const craftAxisY = document.getElementById("craft-axis-y");
+      const craftAxisCorner = document.getElementById("craft-axis-corner");
+      const craftPinEl = document.getElementById("craft-pin");
+      const craftPinLabel = document.getElementById("craft-pin-label");
+      const btnCraft = document.getElementById("btn-craft");
+      const btnCraftAxis = document.getElementById("btn-craft-axis");
+      const btnShowCodes = document.getElementById("btn-show-codes");
+      const btnRmBg = document.getElementById("btn-rm-bg");
+      const btnErase = document.getElementById("btn-erase");
+      const btnEraseFill = document.getElementById("btn-erase-fill");
+      const eraseBrushEl = document.getElementById("erase-brush");
+      const eraseBrushVal = document.getElementById("erase-brush-val");
+      const rmBgTolEl = document.getElementById("rm-bg-tol");
+      const rmBgTolVal = document.getElementById("rm-bg-tol-val");
+      const btnMirror = document.getElementById("btn-mirror");
+      const btnPan = document.getElementById("btn-pan");
+      const zoomSlider = document.getElementById("zoom-slider");
+      const zoomPct = document.getElementById("zoom-pct");
+      const btnZoomReset = document.getElementById("btn-zoom-reset");
+      const btnCraftRowPrev = document.getElementById("craft-row-prev");
+      const btnCraftRowNext = document.getElementById("craft-row-next");
+      const craftStepEl = document.getElementById("craft-step");
+      const craftStepPrev = document.getElementById("craft-step-prev");
+      const craftStepNext = document.getElementById("craft-step-next");
+      const craftStepFocus = document.getElementById("craft-step-focus");
+      const craftStepCoord = document.getElementById("craft-step-coord");
+      const craftStepMeta = document.getElementById("craft-step-meta");
+      const previewStage = document.getElementById("preview-stage");
+      const stats = document.getElementById("stats");
+      const legend = document.getElementById("legend");
+      const draftPanel = document.getElementById("draft-panel");
+      const draftListEl = document.getElementById("draft-list");
+      const draftBoundEl = document.getElementById("draft-bound");
+      const btnDraftToggle = document.getElementById("btn-draft-toggle");
+      const btnDraftSave = document.getElementById("btn-draft-save");
+      const tip = document.getElementById("tip");
+      const btnExport = document.getElementById("btn-export");
+      const btnExportCodes = document.getElementById("btn-export-codes");
+      const btnCsv = document.getElementById("btn-csv");
+      const btnPrint = document.getElementById("btn-print");
+      const btnLevel = document.getElementById("btn-level");
+      const btnPlay = document.getElementById("btn-play");
+      const btnCta9 = document.getElementById("btn-cta-9");
+      const btnToPaint = document.getElementById("btn-to-paint");
+      const handoffPaint = document.getElementById("handoff-paint");
+      const structPanel = document.getElementById("struct-panel");
+      const structMsg = document.getElementById("struct-msg");
+      const structTips = document.getElementById("struct-tips");
+      const boardAdviceEl = document.getElementById("board-advice");
+      const ctaPlay = document.getElementById("cta-play");
+      const ctaHint = document.getElementById("cta-hint");
+      const ctaSwitchRow = document.getElementById("cta-switch-row");
+      const linkChart = document.getElementById("link-chart");
+      const relChart = document.getElementById("rel-chart");
+      const paletteBanner = document.getElementById("palette-banner");
+      const sticky = document.getElementById("sticky-export");
+      const stickyPng = document.getElementById("sticky-png");
+      const stickyCodes = document.getElementById("sticky-codes");
+      const stickyPrint = document.getElementById("sticky-print");
+      const exportPick = document.getElementById("export-pick");
+      /** Fixed cell px when exporting with bead color codes (independent of preview zoom). */
+      const CODES_EXPORT_CELL = 28;
+      const CODES_EXPORT_MAX_EDGE = 8192;
+      /** @type {null|"pattern"|"codes"|"print"} */
+      let pendingExportKind = null;
+      const nameEl = document.getElementById("lname");
+      const printTileEl = document.getElementById("print-tile");
+      const printMajorEl = document.getElementById("print-major");
+      const printCellCodesEl = document.getElementById("print-cell-codes");
+      const printPitchEl = document.getElementById("print-pitch");
+      const pitchFamilyEl = document.getElementById("pitch-family");
+      const pitchWarnEl = document.getElementById("pitch-warn");
+      const importBanner = document.getElementById("import-banner");
+      const beadSummary = document.getElementById("bead-summary");
+      const beadTotal = document.getElementById("bead-total");
+      const beadBuy = document.getElementById("bead-buy");
+      const beadList = document.getElementById("bead-list");
+      const stockEnabledEl = document.getElementById("stock-enabled");
+      const stockOnlyEl = document.getElementById("stock-only");
+      const stockSwatches = document.getElementById("stock-swatches");
+      const stockMissingEl = document.getElementById("stock-missing");
+      const stockAutoHint = document.getElementById("stock-auto-hint");
+      const btnStockAll = document.getElementById("btn-stock-all");
+      const btnStockNone = document.getElementById("btn-stock-none");
+      const adv = document.getElementById("adv");
+      const tplTabs = document.getElementById("tpl-tabs");
+      const tplGrid = document.getElementById("tpl-grid");
+      const editPanel = document.getElementById("edit-panel");
+      const editSwatches = document.getElementById("edit-swatches");
+      const btnEditUndo = document.getElementById("btn-edit-undo");
+      const sparseThrEl = document.getElementById("sparse-thr");
+      const btnSparseMerge = document.getElementById("btn-sparse-merge");
+
+      let sourceImg = null;
+      let fromTemplate = false;
+      let activeTplCat = "people";
+      let activeTplId = null;
+      let lastCounts = null;
+      let lastPalette = null;
+      let lastQuantized = null;
+      let lastQuantizedBase = null;
+      let rmBgOn = false;
+      /** Manual erase bits (1 = force transparent). Survives Remove BG re-apply. */
+      let eraseMask = null;
+      let lastGridCanvas = null;
+      let lastLevel = null;
+      let lastSide = 96;
+      let applyingPreset = false;
+      let tipKey = "perler.tip.photo";
+      let editTool = "paint";
+      let editArmed = false; /* opt-in: tap a tool before painting (web + phone) */
+      let brushColor = null;
+      let undoStack = [];
+      const UNDO_MAX = 24;
+      let editPainting = false;
+      let editStrokeDirty = false;
+
+      function isEraseTool(tool) {
+        return tool === "eraser" || tool === "erase-fill";
+      }
+
+      function eraseBrushRadius() {
+        const n = eraseBrushEl ? Math.max(1, Math.min(5, +eraseBrushEl.value || 1)) : 1;
+        return n - 1;
+      }
+
+      function ensureEraseMask(w, h) {
+        const n = w * h;
+        if (!eraseMask || eraseMask.length !== n) {
+          eraseMask = new Uint8Array(n);
+        }
+        return eraseMask;
+      }
+
+      function clearEraseMask() {
+        eraseMask = null;
+      }
+
+      function cloneEraseMask() {
+        return eraseMask ? new Uint8Array(eraseMask) : null;
+      }
+
+      function applyEraseMaskTo(img) {
+        if (!img || !eraseMask) return;
+        const n = img.width * img.height;
+        if (eraseMask.length !== n) return;
+        const d = img.data;
+        for (let i = 0; i < n; i++) {
+          if (eraseMask[i]) d[i * 4 + 3] = 0;
+        }
+      }
+
+      function markEraseCell(x, y, on) {
+        if (!lastQuantized) return;
+        const mask = ensureEraseMask(lastQuantized.width, lastQuantized.height);
+        if (x < 0 || y < 0 || x >= lastQuantized.width || y >= lastQuantized.height) return;
+        mask[y * lastQuantized.width + x] = on ? 1 : 0;
+      }
+
+      function isPerlerMobile() {
+        return document.body.classList.contains("perler-is-mobile");
+      }
+
+      function setEditArmed(on) {
+        editArmed = !!on;
+        if (editArmed) panArmed = false;
+        syncEditChrome();
+        syncPreviewToggles();
+        syncEraseUi();
+      }
+
+      function canEditCanvas() {
+        return !!lastQuantized && editPanel && !editPanel.hidden && editArmed && !panArmed;
+      }
+
+      function syncEditChrome() {
+        if (!editPanel) return;
+        editPanel.classList.toggle("is-armed", editArmed);
+        editPanel.classList.toggle("is-idle", !editArmed);
+        const hint = editPanel.querySelector(".edit-panel__hint");
+        if (hint) {
+          hint.hidden = !(!editArmed && !editPanel.hidden);
+        }
+        document.querySelectorAll(".edit-tool").forEach((b) => {
+          const active = editArmed && b.getAttribute("data-edit") === editTool;
+          b.classList.toggle("is-active", active);
+        });
+        syncViewportCursor();
+        syncEraseUi();
+      }
+      let craftMode = false;
+      let craftGuide = "color"; // color | row
+      let craftFocusId = null;
+      let craftDoneIds = new Set();
+      /** Visual-coord keys "x,y" for cells the user has placed. */
+      let craftPlaced = new Set();
+      let craftFingerprint = "";
+      let craftProgressDirty = false;
+      /** Bound draft id in IndexedDB, or "". */
+      let activeDraftId = "";
+      let activeDraftTitle = "";
+      let suppressDraftUnbind = false;
+      let craftRow = 0;
+      let craftAxisOn = true;
+      /** Visual 0-based cell under pin, or null. */
+      let craftPin = null;
+      /** Bead-by-bead list in visual top→bottom, left→right order. */
+      let craftStepList = [];
+      /** -1 = not started; else index into craftStepList. */
+      let craftStepIndex = -1;
+      /** True when pin was set by the stepper (stronger ring). */
+      let craftStepFromNav = false;
+      /* Camera: translate(pan) scale(scale) on #craft-stage, origin top-left */
+      let viewScale = 1;
+      let viewPanX = 0;
+      let viewPanY = 0;
+      let panArmed = false;
+      let viewPanning = false;
+      let viewPanLast = null;
+      let lastViewFitKey = "";
+      let homeViewScale = 1;
+      let homeViewPanX = 0;
+      let homeViewPanY = 0;
+      let showCellCodes = false;
+
+      function syncRmBgUi() {
+        const ready = !!lastQuantizedBase || !!lastQuantized;
+        if (btnRmBg) {
+          btnRmBg.disabled = !ready;
+          btnRmBg.classList.toggle("is-active", rmBgOn);
+          btnRmBg.setAttribute("aria-pressed", rmBgOn ? "true" : "false");
+        }
+        if (rmBgTolEl) {
+          rmBgTolEl.disabled = !rmBgOn;
+          if (rmBgTolVal) rmBgTolVal.textContent = String(+rmBgTolEl.value || 36);
+        }
+      }
+
+      function applyRmBgFromBase() {
+        if (!lastQuantizedBase || !lastPalette) return;
+        if (rmBgOn && FGImage.removeBackgroundEdgeFlood) {
+          const tol = rmBgTolEl ? Math.max(8, Math.min(96, +rmBgTolEl.value || 36)) : 36;
+          lastQuantized = FGImage.removeBackgroundEdgeFlood(lastQuantizedBase, {
+            tolerance: tol,
+          });
+        } else {
+          lastQuantized = cloneImageData(lastQuantizedBase);
+        }
+        applyEraseMaskTo(lastQuantized);
+        clearUndo();
+        craftDoneIds = new Set();
+        craftFocusId = null;
+        lastViewFitKey = "";
+        refreshFromQuantized();
+        syncRmBgUi();
+        syncEraseUi();
+      }
+
+      function syncEraseUi() {
+        const ready = !!lastQuantized;
+        const eraseOn = editArmed && editTool === "eraser";
+        const fillOn = editArmed && editTool === "erase-fill";
+        if (btnErase) {
+          btnErase.disabled = !ready || craftMode;
+          btnErase.classList.toggle("is-active", eraseOn);
+          btnErase.setAttribute("aria-pressed", eraseOn ? "true" : "false");
+        }
+        if (btnEraseFill) {
+          btnEraseFill.disabled = !ready || craftMode;
+          btnEraseFill.classList.toggle("is-active", fillOn);
+          btnEraseFill.setAttribute("aria-pressed", fillOn ? "true" : "false");
+        }
+        if (eraseBrushVal && eraseBrushEl) {
+          eraseBrushVal.textContent = String(+eraseBrushEl.value || 1);
+        }
+      }
+      let mirrorH = false;
+
+      function syncViewportCursor() {
+        if (!craftViewport) return;
+        craftViewport.classList.toggle("is-pan-armed", panArmed && !!lastQuantized);
+        craftViewport.classList.toggle("is-panning", viewPanning);
+        craftViewport.classList.toggle(
+          "is-erase-armed",
+          !!lastQuantized && editArmed && isEraseTool(editTool) && !panArmed
+        );
+      }
+
+      function syncPreviewToggles() {
+        const ready = !!lastQuantized;
+        if (btnShowCodes) {
+          btnShowCodes.disabled = !ready;
+          btnShowCodes.classList.toggle("is-active", showCellCodes);
+          btnShowCodes.setAttribute("aria-pressed", showCellCodes ? "true" : "false");
+        }
+        syncRmBgUi();
+        syncEraseUi();
+        if (btnMirror) {
+          btnMirror.disabled = !ready;
+          btnMirror.classList.toggle("is-active", mirrorH);
+          btnMirror.setAttribute("aria-pressed", mirrorH ? "true" : "false");
+        }
+        if (btnPan) {
+          btnPan.disabled = !ready;
+          btnPan.classList.toggle("is-active", panArmed);
+          btnPan.setAttribute("aria-pressed", panArmed ? "true" : "false");
+        }
+        const pct = Math.round(viewScale * 100);
+        if (zoomPct) zoomPct.textContent = pct + "%";
+        if (zoomSlider) {
+          zoomSlider.disabled = !ready;
+          zoomSlider.value = String(Math.max(25, Math.min(400, pct)));
+          zoomSlider.title = t("perler.zoom.hint");
+        }
+        if (btnZoomReset) {
+          btnZoomReset.disabled = !ready;
+          btnZoomReset.title = t("perler.zoom.reset");
+        }
+        syncViewportCursor();
+      }
+
+      /** Logical bead size (before zoom). Fit/pan math uses this, not the hi-res bitmap. */
+      function boardMetrics() {
+        const cols = lastQuantized ? lastQuantized.width : 1;
+        const rows = lastQuantized ? lastQuantized.height : 1;
+        const baseCell = Math.max(4, Math.min(20, +cellEl.value || 8));
+        const beads = viewEl.value === "beads";
+        const gap = beads ? 1 : 0;
+        const step = baseCell + gap;
+        return {
+          cols,
+          rows,
+          baseCell,
+          beads,
+          gap,
+          w: cols * step - (gap ? gap : 0),
+          h: rows * step - (gap ? gap : 0),
+        };
+      }
+
+      function cssViewScale() {
+        /* Codes bake zoom into the bitmap; CSS scale stays 1. */
+        return showCellCodes ? 1 : viewScale;
+      }
+
+      function applyViewTransform() {
+        if (!craftStage) return;
+        const scale = cssViewScale();
+        craftStage.style.transform =
+          "translate(" + viewPanX + "px," + viewPanY + "px) scale(" + scale + ")";
+        syncCraftAxisUi();
+      }
+
+      function viewportSize() {
+        if (!craftViewport) return { vw: 1, vh: 1 };
+        return {
+          vw: Math.max(1, craftViewport.clientWidth || 1),
+          vh: Math.max(1, craftViewport.clientHeight || 1),
+        };
+      }
+
+      /** Unscaled bitmap px of a cell center (matches drawBeadGrid / drawImageData). */
+      function cellCenterBitmap(cx, cy) {
+        const m = boardMetrics();
+        const gap = m.beads ? 1 : 0;
+        const step = m.baseCell + gap;
+        return {
+          x: cx * step + m.baseCell * 0.5,
+          y: cy * step + m.baseCell * 0.5,
+        };
+      }
+
+      function setCraftAxisOn(on) {
+        craftAxisOn = !!on;
+        if (btnCraftAxis) {
+          btnCraftAxis.classList.toggle("is-active", craftAxisOn);
+          btnCraftAxis.setAttribute("aria-pressed", craftAxisOn ? "true" : "false");
+          btnCraftAxis.title = t("perler.craft.axisHint");
+        }
+        syncCraftAxisUi();
+      }
+
+      function clearCraftPin() {
+        craftPin = null;
+        craftStepFromNav = false;
+        syncCraftAxisUi();
+        syncCraftStepUi();
+      }
+
+      function buildCraftStepList() {
+        const list = [];
+        if (!lastQuantized || !lastPalette) return list;
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        const d = lastQuantized.data;
+        const rgbToId = Object.create(null);
+        lastPalette.colors.forEach((c) => {
+          const rgb = c.rgb || FGPalettes.hexToRgb(c.hex);
+          if (!rgb) return;
+          rgbToId[rgb[0] + "," + rgb[1] + "," + rgb[2]] = c.id;
+        });
+        const rowMode = craftGuide === "row";
+        const focusId = rowMode ? null : craftFocusId;
+        for (let y = 0; y < h; y++) {
+          if (rowMode && y !== craftRow) continue;
+          for (let vx = 0; vx < w; vx++) {
+            const sx = mirrorH ? w - 1 - vx : vx;
+            const i = (y * w + sx) * 4;
+            if (d[i + 3] < 16) continue;
+            const id = rgbToId[d[i] + "," + d[i + 1] + "," + d[i + 2]] || 0;
+            if (!id) continue;
+            if (focusId != null && !colorIdEq(id, focusId)) continue;
+            if (isCellPlaced(vx, y)) continue;
+            list.push({ x: vx, y: y, id: id });
+          }
+        }
+        return list;
+      }
+
+      function rebuildCraftStepList(opts) {
+        const o = opts || {};
+        const prev =
+          craftStepIndex >= 0 && craftStepList[craftStepIndex]
+            ? craftStepList[craftStepIndex]
+            : craftPin
+              ? { x: craftPin.x, y: craftPin.y }
+              : null;
+        craftStepList = buildCraftStepList();
+        if (o.reset) {
+          craftStepIndex = -1;
+          return;
+        }
+        if (prev) {
+          const idx = craftStepList.findIndex(
+            (c) => c.x === prev.x && c.y === prev.y
+          );
+          craftStepIndex = idx;
+        } else if (!craftStepList.length) {
+          craftStepIndex = -1;
+        }
+      }
+
+      function pulseCraftStepFocus() {
+        if (!craftStepFocus) return;
+        craftStepFocus.classList.remove("is-pulse");
+        void craftStepFocus.offsetWidth;
+        craftStepFocus.classList.add("is-pulse");
+        window.setTimeout(() => {
+          if (craftStepFocus) craftStepFocus.classList.remove("is-pulse");
+        }, 480);
+      }
+
+      function colorIdEq(a, b) {
+        if (a == null || b == null) return false;
+        return a === b || String(a) === String(b);
+      }
+
+      function cellKey(x, y) {
+        return window.FGBeadCraftProgress
+          ? FGBeadCraftProgress.cellKey(x, y)
+          : String(x | 0) + "," + String(y | 0);
+      }
+
+      function isCellPlaced(x, y) {
+        return craftPlaced.has(cellKey(x, y));
+      }
+
+      function setCellPlaced(x, y, on) {
+        const k = cellKey(x, y);
+        if (on) {
+          if (craftPlaced.has(k)) return false;
+          craftPlaced.add(k);
+        } else {
+          if (!craftPlaced.has(k)) return false;
+          craftPlaced.delete(k);
+        }
+        craftProgressDirty = true;
+        return true;
+      }
+
+      function toggleCellPlaced(x, y) {
+        return setCellPlaced(x, y, !isCellPlaced(x, y));
+      }
+
+      function opaqueBeadTotal() {
+        if (!lastQuantized) return 0;
+        const d = lastQuantized.data;
+        let n = 0;
+        for (let i = 3; i < d.length; i += 4) {
+          if (d[i] >= 16) n++;
+        }
+        return n;
+      }
+
+      /** Mark / unmark every visual cell of a palette color. */
+      function setColorCellsPlaced(colorId, on) {
+        if (!lastQuantized || !lastPalette || colorId == null) return;
+        const focus = lastPalette.colors.find((c) => colorIdEq(c.id, colorId));
+        if (!focus) return;
+        const rgb = focus.rgb || FGPalettes.hexToRgb(focus.hex);
+        if (!rgb) return;
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        const d = lastQuantized.data;
+        for (let y = 0; y < h; y++) {
+          for (let vx = 0; vx < w; vx++) {
+            const sx = mirrorH ? w - 1 - vx : vx;
+            const i = (y * w + sx) * 4;
+            if (d[i + 3] < 16) continue;
+            if (d[i] !== rgb[0] || d[i + 1] !== rgb[1] || d[i + 2] !== rgb[2]) continue;
+            setCellPlaced(vx, y, on);
+          }
+        }
+      }
+
+      /** Derive whole-color 「已摆完」 from cell placement. */
+      function syncCraftDoneIdsFromPlaced() {
+        craftDoneIds = new Set();
+        if (!lastQuantized || !lastPalette || !lastCounts) return;
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        const d = lastQuantized.data;
+        const rgbToId = Object.create(null);
+        lastPalette.colors.forEach((c) => {
+          const rgb = c.rgb || FGPalettes.hexToRgb(c.hex);
+          if (!rgb) return;
+          rgbToId[rgb[0] + "," + rgb[1] + "," + rgb[2]] = c.id;
+        });
+        const need = Object.create(null);
+        const got = Object.create(null);
+        lastPalette.colors.forEach((c) => {
+          if ((lastCounts[c.id] || 0) > 0) {
+            need[c.id] = lastCounts[c.id];
+            got[c.id] = 0;
+          }
+        });
+        for (let y = 0; y < h; y++) {
+          for (let vx = 0; vx < w; vx++) {
+            if (!isCellPlaced(vx, y)) continue;
+            const sx = mirrorH ? w - 1 - vx : vx;
+            const i = (y * w + sx) * 4;
+            if (d[i + 3] < 16) continue;
+            const id = rgbToId[d[i] + "," + d[i + 1] + "," + d[i + 2]];
+            if (id == null || got[id] == null) continue;
+            got[id]++;
+          }
+        }
+        Object.keys(need).forEach((idKey) => {
+          if (got[idKey] < need[idKey]) return;
+          const c =
+            lastPalette &&
+            lastPalette.colors.find((col) => colorIdEq(col.id, idKey));
+          craftDoneIds.add(c ? c.id : idKey);
+        });
+      }
+
+      function saveCraftProgressNow() {
+        if (!window.FGBeadCraftProgress || !lastQuantized || !craftFingerprint) return;
+        FGBeadCraftProgress.save(craftFingerprint, {
+          w: lastQuantized.width,
+          h: lastQuantized.height,
+          placed: Array.from(craftPlaced),
+          guide: craftGuide,
+          focusId: craftFocusId,
+          row: craftRow,
+        });
+        craftProgressDirty = false;
+        if (activeDraftId) touchActiveDraftMeta();
+      }
+
+      function defaultDraftTitle() {
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        return (
+          t("perler.draft.defaultTitle") +
+          " " +
+          pad(d.getMonth() + 1) +
+          "-" +
+          pad(d.getDate()) +
+          " " +
+          pad(d.getHours()) +
+          ":" +
+          pad(d.getMinutes())
+        );
+      }
+
+      function setDraftPanelOpen(open) {
+        if (!draftPanel || !btnDraftToggle) return;
+        if (open) {
+          draftPanel.hidden = false;
+          draftPanel.removeAttribute("hidden");
+          btnDraftToggle.setAttribute("aria-expanded", "true");
+          btnDraftToggle.classList.add("is-active");
+        } else {
+          draftPanel.hidden = true;
+          draftPanel.setAttribute("hidden", "");
+          btnDraftToggle.setAttribute("aria-expanded", "false");
+          btnDraftToggle.classList.remove("is-active");
+        }
+      }
+
+      function syncDraftChrome() {
+        const ready = !!lastQuantized;
+        if (btnDraftToggle) {
+          btnDraftToggle.disabled = !ready;
+          btnDraftToggle.textContent = t("perler.draft.title");
+        }
+        if (btnDraftSave) btnDraftSave.disabled = !ready;
+        if (draftBoundEl) {
+          if (activeDraftId && activeDraftTitle) {
+            draftBoundEl.hidden = false;
+            draftBoundEl.textContent = t("perler.draft.bound").replace(
+              "{title}",
+              activeDraftTitle
+            );
+          } else {
+            draftBoundEl.hidden = false;
+            draftBoundEl.textContent = t("perler.draft.unbound");
+          }
+        }
+      }
+
+      function formatDraftTime(ts) {
+        if (!ts) return "";
+        try {
+          const d = new Date(ts);
+          const pad = (n) => String(n).padStart(2, "0");
+          return (
+            pad(d.getMonth() + 1) +
+            "-" +
+            pad(d.getDate()) +
+            " " +
+            pad(d.getHours()) +
+            ":" +
+            pad(d.getMinutes())
+          );
+        } catch (_) {
+          return "";
+        }
+      }
+
+      async function touchActiveDraftMeta() {
+        if (!activeDraftId || !window.FGBeadCraftDrafts || !lastQuantized) return;
+        try {
+          const row = await FGBeadCraftDrafts.get(activeDraftId);
+          if (!row) return;
+          row.placedCount = craftPlaced.size;
+          row.beadTotal = opaqueBeadTotal();
+          row.fingerprint = craftFingerprint || row.fingerprint;
+          row.updatedAt = Date.now();
+          await FGBeadCraftDrafts.put(row);
+          paintDraftList();
+        } catch (_) {
+          /* ignore */
+        }
+      }
+
+      async function paintDraftList() {
+        if (!draftListEl) return;
+        if (!window.FGBeadCraftDrafts) {
+          draftListEl.innerHTML =
+            '<li class="draft-list__empty">' +
+            t("perler.draft.unavailable") +
+            "</li>";
+          return;
+        }
+        let rows = [];
+        try {
+          rows = await FGBeadCraftDrafts.list();
+        } catch (_) {
+          draftListEl.innerHTML =
+            '<li class="draft-list__empty">' +
+            t("perler.draft.unavailable") +
+            "</li>";
+          return;
+        }
+        if (!rows.length) {
+          draftListEl.innerHTML =
+            '<li class="draft-list__empty">' + t("perler.draft.empty") + "</li>";
+          syncDraftChrome();
+          return;
+        }
+        draftListEl.innerHTML = rows
+          .map((r) => {
+            const prog =
+              r.beadTotal > 0
+                ? t("perler.draft.progress")
+                    .replace("{n}", String(r.placedCount | 0))
+                    .replace("{total}", String(r.beadTotal | 0))
+                : r.w + "×" + r.h;
+            const active = r.id === activeDraftId ? " is-active" : "";
+            const thumb = r.thumb
+              ? '<img class="draft-card__thumb" src="' +
+                r.thumb +
+                '" alt="" width="52" height="52" />'
+              : '<div class="draft-card__thumb" aria-hidden="true"></div>';
+            const title = String(r.title || t("perler.draft.defaultTitle"))
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/"/g, "&quot;");
+            return (
+              '<li class="draft-card' +
+              active +
+              '" data-draft-id="' +
+              r.id +
+              '">' +
+              thumb +
+              '<div class="draft-card__body">' +
+              '<p class="draft-card__title">' +
+              title +
+              "</p>" +
+              '<p class="draft-card__meta">' +
+              prog +
+              " · " +
+              formatDraftTime(r.updatedAt) +
+              "</p>" +
+              '<div class="draft-card__actions">' +
+              '<button type="button" class="btn btn--ghost" data-draft-open="' +
+              r.id +
+              '">' +
+              t("perler.draft.open") +
+              "</button>" +
+              '<button type="button" class="btn btn--ghost" data-draft-delete="' +
+              r.id +
+              '">' +
+              t("perler.draft.delete") +
+              "</button>" +
+              "</div></div></li>"
+            );
+          })
+          .join("");
+        draftListEl.querySelectorAll("[data-draft-open]").forEach((btn) => {
+          btn.addEventListener("click", () => openDraftById(btn.getAttribute("data-draft-open")));
+        });
+        draftListEl.querySelectorAll("[data-draft-delete]").forEach((btn) => {
+          btn.addEventListener("click", () =>
+            deleteDraftById(btn.getAttribute("data-draft-delete"))
+          );
+        });
+        syncDraftChrome();
+      }
+
+      async function saveDraft() {
+        if (!lastQuantized || !lastPalette) {
+          if (tip) tip.textContent = t("perler.draft.needPattern");
+          return;
+        }
+        if (!window.FGBeadCraftDrafts) {
+          if (tip) tip.textContent = t("perler.draft.unavailable");
+          return;
+        }
+        try {
+          if (!craftFingerprint && window.FGBeadCraftProgress) {
+            craftFingerprint = FGBeadCraftProgress.fingerprint(
+              lastQuantized,
+              lastPalette.id
+            );
+          }
+          saveCraftProgressNow();
+          const overwrite = !!activeDraftId;
+          let title = activeDraftTitle || defaultDraftTitle();
+          if (!overwrite) {
+            const asked = window.prompt(t("perler.draft.save"), title);
+            if (asked == null) return;
+            title = String(asked).trim() || defaultDraftTitle();
+          }
+          const draft = await FGBeadCraftDrafts.saveFromImageData(lastQuantized, {
+            id: overwrite ? activeDraftId : undefined,
+            title: title,
+            fingerprint: craftFingerprint,
+            paletteId: lastPalette.id || "",
+            placedCount: craftPlaced.size,
+            beadTotal: opaqueBeadTotal(),
+          });
+          activeDraftId = draft.id;
+          activeDraftTitle = draft.title;
+          if (tip) tip.textContent = t("perler.draft.saved");
+          await paintDraftList();
+          FGTool.track("perler", overwrite ? "draft_update" : "draft_save");
+        } catch (err) {
+          if (tip) tip.textContent = t("perler.draft.unavailable");
+        }
+      }
+
+      async function openDraftById(id) {
+        if (!id || !window.FGBeadCraftDrafts) return;
+        if (lastQuantized && !window.confirm(t("perler.draft.confirmOpen"))) return;
+        try {
+          const packed = await FGBeadCraftDrafts.loadImageData(id);
+          if (!packed || !packed.imageData) return;
+          const wasCraft = craftMode;
+          if (wasCraft) setCraftMode(false);
+          activeDraftId = packed.draft.id;
+          activeDraftTitle = packed.draft.title || t("perler.draft.defaultTitle");
+          const palId = packed.draft.paletteId || "mard-221";
+          const wasRm = rmBgOn;
+          rmBgOn = false;
+          applyQuantizedHandoff(packed.imageData, palId);
+          rmBgOn = wasRm;
+          syncRmBgUi();
+          /* refreshFromQuantized inside applyRmBg loads progress by fingerprint */
+          await paintDraftList();
+          if (wasCraft) setCraftMode(true);
+          FGTool.track("perler", "draft_open");
+        } catch (_) {
+          if (tip) tip.textContent = t("perler.draft.unavailable");
+        }
+      }
+
+      async function deleteDraftById(id) {
+        if (!id || !window.FGBeadCraftDrafts) return;
+        if (!window.confirm(t("perler.draft.confirmDelete"))) return;
+        try {
+          await FGBeadCraftDrafts.remove(id);
+          if (activeDraftId === id) {
+            activeDraftId = "";
+            activeDraftTitle = "";
+          }
+          await paintDraftList();
+          FGTool.track("perler", "draft_delete");
+        } catch (_) {
+          if (tip) tip.textContent = t("perler.draft.unavailable");
+        }
+      }
+
+      /** Visual keys flip with horizontal mirror so the same physical beads stay marked. */
+      function remapPlacedAfterMirrorFlip() {
+        if (!lastQuantized || !craftPlaced.size) return;
+        const w = lastQuantized.width;
+        const next = new Set();
+        craftPlaced.forEach((k) => {
+          const parts = String(k).split(",");
+          const x = +parts[0];
+          const y = +parts[1];
+          if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+          next.add(cellKey(w - 1 - x, y));
+        });
+        craftPlaced = next;
+        craftProgressDirty = true;
+        syncCraftDoneIdsFromPlaced();
+      }
+
+      function loadCraftProgressForFingerprint(fp) {
+        craftPlaced = new Set();
+        craftDoneIds = new Set();
+        craftProgressDirty = false;
+        if (!window.FGBeadCraftProgress || !fp) return false;
+        const saved = FGBeadCraftProgress.load(fp);
+        if (!saved || !Array.isArray(saved.placed)) return false;
+        saved.placed.forEach((k) => {
+          if (typeof k === "string" && k.indexOf(",") > 0) craftPlaced.add(k);
+        });
+        if (saved.guide === "row" || saved.guide === "color") craftGuide = saved.guide;
+        if (saved.focusId != null) craftFocusId = saved.focusId;
+        if (Number.isFinite(+saved.row)) craftRow = Math.max(0, +saved.row | 0);
+        syncCraftDoneIdsFromPlaced();
+        return craftPlaced.size > 0;
+      }
+
+      /** Recompute fingerprint after a new pattern; restore matching progress if any. */
+      function syncCraftProgressToPattern() {
+        if (!lastQuantized || !window.FGBeadCraftProgress) {
+          craftFingerprint = "";
+          craftPlaced = new Set();
+          return;
+        }
+        const fp = FGBeadCraftProgress.fingerprint(
+          lastQuantized,
+          lastPalette && lastPalette.id
+        );
+        if (fp === craftFingerprint) return;
+        if (craftProgressDirty && craftFingerprint) saveCraftProgressNow();
+        craftFingerprint = fp;
+        loadCraftProgressForFingerprint(fp);
+        /* Pattern changed — drop draft binding if it no longer matches */
+        if (activeDraftId) reconcileActiveDraftBinding();
+      }
+
+      async function reconcileActiveDraftBinding() {
+        if (!activeDraftId || !window.FGBeadCraftDrafts) return;
+        try {
+          const row = await FGBeadCraftDrafts.get(activeDraftId);
+          if (!row || row.fingerprint !== craftFingerprint) {
+            activeDraftId = "";
+            activeDraftTitle = "";
+            syncDraftChrome();
+            paintDraftList();
+          }
+        } catch (_) {
+          /* ignore */
+        }
+      }
+
+      /**
+       * Place the stepped bead at the viewport center (absolute pan, no delta feedback).
+       * Legend color clicks must never call this.
+       */
+      function ensureCraftPinVisible() {
+        if (!craftPin || !craftViewport) return;
+        const { vw, vh } = viewportSize();
+        const scale = cssViewScale();
+        if (showCellCodes) {
+          /* Bitmap already zoomed — use live layout once, then absolute pan. */
+          const layout = patternAxisLayout();
+          if (!layout) return;
+          const px = layout.centerX(craftPin.x);
+          const py = layout.centerY(craftPin.y);
+          viewPanX += vw * 0.5 - px;
+          viewPanY += vh * 0.52 - py;
+        } else {
+          const c = cellCenterBitmap(craftPin.x, craftPin.y);
+          viewPanX = vw * 0.5 - c.x * scale;
+          viewPanY = vh * 0.52 - c.y * scale;
+        }
+        applyViewTransform();
+      }
+
+      function applyCraftStepPin() {
+        if (craftStepIndex < 0 || craftStepIndex >= craftStepList.length) {
+          craftStepFromNav = false;
+          return;
+        }
+        const cell = craftStepList[craftStepIndex];
+        craftPin = { x: cell.x, y: cell.y };
+        craftStepFromNav = true;
+        if (!craftAxisOn) setCraftAxisOn(true);
+        else syncCraftAxisUi();
+        syncCraftStepUi({ pulse: true });
+        ensureCraftPinVisible();
+      }
+
+      function goCraftStep(delta) {
+        if (!craftMode || !lastQuantized) return;
+        /* Next: mark current pin as placed, then jump to next unfinished cell */
+        if (delta > 0 && craftPin) {
+          if (setCellPlaced(craftPin.x, craftPin.y, true)) {
+            syncCraftDoneIdsFromPlaced();
+            saveCraftProgressNow();
+          }
+        }
+        rebuildCraftStepList();
+        if (!craftStepList.length) {
+          craftStepIndex = -1;
+          craftPin = null;
+          craftStepFromNav = false;
+          syncCraftAxisUi();
+          syncCraftStepUi();
+          drawPatternCanvas();
+          paintLegend(lastCounts || {});
+          return;
+        }
+        if (craftStepIndex < 0) {
+          craftStepIndex = delta >= 0 ? 0 : craftStepList.length - 1;
+        } else if (delta > 0) {
+          /* After marking, current cell left the list — stay on new index 0 of remaining, or advance */
+          craftStepIndex = 0;
+        } else {
+          const n = craftStepList.length;
+          craftStepIndex = (craftStepIndex + delta + n) % n;
+        }
+        applyCraftStepPin();
+        drawPatternCanvas();
+        paintLegend(lastCounts || {});
+        FGTool.track("perler", delta >= 0 ? "craft_step_next" : "craft_step_prev");
+      }
+
+      function syncCraftStepUi(opts) {
+        const o = opts || {};
+        if (!craftStepEl) return;
+        const show = !!craftMode && !!lastQuantized;
+        craftStepEl.hidden = !show;
+        if (show) craftStepEl.removeAttribute("hidden");
+        else craftStepEl.setAttribute("hidden", "");
+        if (!show) return;
+
+        const total = craftStepList.length;
+        const empty = total === 0;
+        if (craftStepPrev) craftStepPrev.disabled = empty;
+        if (craftStepNext) craftStepNext.disabled = empty;
+
+        if (craftStepPrev) {
+          craftStepPrev.textContent = "◀";
+          craftStepPrev.title = t("perler.craft.stepPrev");
+          craftStepPrev.setAttribute("aria-label", t("perler.craft.stepPrev"));
+        }
+        if (craftStepNext) {
+          craftStepNext.textContent = t("perler.craft.stepNext");
+          craftStepNext.title = t("perler.craft.stepNextHint");
+          craftStepNext.setAttribute("aria-label", t("perler.craft.stepNext"));
+        }
+        const tagEl = craftStepEl.querySelector(".craft-step__tag");
+        if (tagEl) tagEl.textContent = t("perler.craft.stepTag");
+
+        const placedN = craftPlaced.size;
+        const beadTotal = opaqueBeadTotal();
+        const progressTxt =
+          beadTotal > 0
+            ? t("perler.craft.progressOf")
+                .replace("{n}", String(placedN))
+                .replace("{total}", String(beadTotal))
+            : "";
+
+        if (empty) {
+          if (craftStepCoord) craftStepCoord.textContent = "—";
+          if (craftStepMeta) {
+            craftStepMeta.textContent = progressTxt || t("perler.craft.stepEmpty");
+            craftStepMeta.classList.toggle("is-empty", !progressTxt);
+          }
+          return;
+        }
+
+        if (craftStepMeta) craftStepMeta.classList.remove("is-empty");
+        if (craftStepIndex < 0) {
+          if (craftStepCoord) craftStepCoord.textContent = t("perler.craft.stepReady");
+          if (craftStepMeta) {
+            craftStepMeta.textContent =
+              (progressTxt ? progressTxt + " · " : "") +
+              t("perler.craft.stepOf")
+                .replace("{n}", "0")
+                .replace("{total}", String(total));
+          }
+        } else {
+          const cell = craftStepList[craftStepIndex];
+          if (craftStepCoord) {
+            craftStepCoord.textContent = t("perler.craft.pinLabel")
+              .replace("{x}", String(cell.x + 1))
+              .replace("{y}", String(cell.y + 1));
+          }
+          if (craftStepMeta) {
+            craftStepMeta.textContent =
+              (progressTxt ? progressTxt + " · " : "") +
+              t("perler.craft.stepOf")
+                .replace("{n}", String(craftStepIndex + 1))
+                .replace("{total}", String(total));
+          }
+        }
+        if (o.pulse) pulseCraftStepFocus();
+      }
+
+      /** Pattern cell under pointer (matches mirrored display); 0-based. */
+      function cellFromEventVisual(e) {
+        if (!lastQuantized || !canvas) return null;
+        const pt = e.touches && e.touches[0] ? e.touches[0] : e;
+        const rect = canvas.getBoundingClientRect();
+        const bw = canvas.width;
+        const bh = canvas.height;
+        if (!rect.width || !rect.height || !bw || !bh) return null;
+        const cols = lastQuantized.width;
+        const rows = lastQuantized.height;
+        const beads = viewEl.value === "beads";
+        const gap = beads ? 1 : 0;
+        const stepBx = gap > 0 ? (bw + gap) / cols : bw / cols;
+        const stepBy = gap > 0 ? (bh + gap) / rows : bh / rows;
+        const localX = ((pt.clientX - rect.left) / rect.width) * bw;
+        const localY = ((pt.clientY - rect.top) / rect.height) * bh;
+        const x = Math.floor(localX / stepBx);
+        const y = Math.floor(localY / stepBy);
+        if (x < 0 || y < 0 || x >= cols || y >= rows) return null;
+        return { x, y };
+      }
+
+      /**
+       * Map pattern grid → screen inside the viewport.
+       * Uses bitmap step (beads gap) so ticks sit on pattern cells, not equal canvas slices.
+       */
+      function patternAxisLayout() {
+        if (!lastQuantized || !canvas || !craftViewport) return null;
+        const cols = lastQuantized.width;
+        const rows = lastQuantized.height;
+        const bw = canvas.width || 0;
+        const bh = canvas.height || 0;
+        if (!cols || !rows || !bw || !bh) return null;
+        const vp = craftViewport.getBoundingClientRect();
+        const cr = canvas.getBoundingClientRect();
+        if (!vp.width || !vp.height || !cr.width || !cr.height) return null;
+        const beads = viewEl.value === "beads";
+        const gap = beads ? 1 : 0;
+        /* drawBeadGrid: width = cols * (cell+gap) - gap  → step = (bw+gap)/cols */
+        const stepBx = gap > 0 ? (bw + gap) / cols : bw / cols;
+        const stepBy = gap > 0 ? (bh + gap) / rows : bh / rows;
+        const cellBx = stepBx - gap;
+        const cellBy = stepBy - gap;
+        const sx = cr.width / bw;
+        const sy = cr.height / bh;
+        const ox = cr.left - vp.left;
+        const oy = cr.top - vp.top;
+        return {
+          cols,
+          rows,
+          vp,
+          ox,
+          oy,
+          gap,
+          /* viewport px of pattern cell i left / top edge */
+          edgeX: (i) => ox + i * stepBx * sx,
+          edgeY: (i) => oy + i * stepBy * sy,
+          centerX: (i) => ox + (i * stepBx + cellBx * 0.5) * sx,
+          centerY: (i) => oy + (i * stepBy + cellBy * 0.5) * sy,
+          cellW: cellBx * sx,
+          cellH: cellBy * sy,
+          stepW: stepBx * sx,
+          stepH: stepBy * sy,
+        };
+      }
+
+      function syncCraftAxisUi() {
+        const showRails = !!(craftMode && craftAxisOn && lastQuantized);
+        const hide = (el) => {
+          if (!el) return;
+          el.hidden = true;
+          el.setAttribute("hidden", "");
+        };
+        const reveal = (el) => {
+          if (!el) return;
+          el.hidden = false;
+          el.removeAttribute("hidden");
+        };
+        const layout = patternAxisLayout();
+        if (!showRails || !layout) {
+          hide(craftAxisX);
+          hide(craftAxisY);
+          hide(craftAxisCorner);
+        } else {
+          reveal(craftAxisCorner);
+          reveal(craftAxisX);
+          reveal(craftAxisY);
+
+          const railPadX = 28;
+          const railPadY = 22;
+          const { cols, rows, vp } = layout;
+
+          function buildRail(axis) {
+            const el = axis === "x" ? craftAxisX : craftAxisY;
+            if (!el) return;
+            const parts = [];
+            const pad = axis === "x" ? railPadX : railPadY;
+            const viewLen = axis === "x" ? vp.width : vp.height;
+            const count = axis === "x" ? cols : rows;
+            const edgeAt = axis === "x" ? layout.edgeX : layout.edgeY;
+            const centerAt = axis === "x" ? layout.centerX : layout.centerY;
+            const step = axis === "x" ? layout.stepW : layout.stepH;
+            const cell = axis === "x" ? layout.cellW : layout.cellH;
+            for (let i = 0; i < count; i++) {
+              const n = i + 1;
+              const edge = edgeAt(i);
+              const center = centerAt(i);
+              const visible = edge + step > pad && edge < viewLen;
+              if (!visible) continue;
+              const isMajor = n % 10 === 0;
+              const isMinor = n % 5 === 0;
+              if (!isMinor && !isMajor && cell < 12) continue;
+              const tickPos = edge - pad;
+              const cls =
+                "craft-axis-rail__tick" + (isMajor || isMinor ? " is-major" : "");
+              parts.push(
+                '<span class="' +
+                  cls +
+                  '" style="' +
+                  (axis === "x" ? "left:" : "top:") +
+                  tickPos.toFixed(1) +
+                  'px"></span>'
+              );
+              if (isMajor || (isMinor && cell >= 16)) {
+                const labelPos = center - pad;
+                if (labelPos > 8 && labelPos < viewLen - pad - 8) {
+                  parts.push(
+                    '<span class="craft-axis-rail__num" style="' +
+                      (axis === "x" ? "left:" : "top:") +
+                      labelPos.toFixed(1) +
+                      'px">' +
+                      n +
+                      "</span>"
+                  );
+                }
+              }
+            }
+            const endEdge = edgeAt(count);
+            const endTick = endEdge - pad;
+            if (endEdge >= pad && endEdge <= viewLen) {
+              parts.push(
+                '<span class="craft-axis-rail__tick is-major" style="' +
+                  (axis === "x" ? "left:" : "top:") +
+                  endTick.toFixed(1) +
+                  'px"></span>'
+              );
+            }
+            el.innerHTML = parts.join("");
+          }
+
+          buildRail("x");
+          buildRail("y");
+        }
+
+        if (craftMode && craftPin && craftPinEl && craftPinLabel && layout) {
+          const { vp } = layout;
+          const px = layout.centerX(craftPin.x);
+          const py = layout.centerY(craftPin.y);
+          if (px < -20 || py < -20 || px > vp.width + 20 || py > vp.height + 20) {
+            hide(craftPinEl);
+          } else {
+            reveal(craftPinEl);
+            craftPinEl.classList.toggle("craft-pin--step", !!craftStepFromNav);
+            craftPinEl.style.left = px + "px";
+            craftPinEl.style.top = py + "px";
+            const box = craftPinEl.querySelector(".craft-pin__box");
+            if (box) {
+              box.style.width = Math.max(8, layout.cellW) + "px";
+              box.style.height = Math.max(8, layout.cellH) + "px";
+            }
+            craftPinLabel.textContent = t("perler.craft.pinLabel")
+              .replace("{x}", String(craftPin.x + 1))
+              .replace("{y}", String(craftPin.y + 1));
+          }
+        } else {
+          hide(craftPinEl);
+          if (craftPinEl) craftPinEl.classList.remove("craft-pin--step");
+        }
+      }
+
+      function setViewScale(next, opts) {
+        const o = opts || {};
+        const z = Math.round(Math.max(0.25, Math.min(4, next)) * 100) / 100;
+        if (z === viewScale && !o.force) {
+          syncPreviewToggles();
+          return;
+        }
+        const { vw, vh } = viewportSize();
+        const oldS = cssViewScale();
+        viewScale = z;
+        const newS = cssViewScale();
+        /* Zoom toward viewport center so the board does not jump */
+        if (oldS > 0 && newS > 0) {
+          const cx = (vw * 0.5 - viewPanX) / oldS;
+          const cy = (vh * 0.5 - viewPanY) / oldS;
+          viewPanX = vw * 0.5 - cx * newS;
+          viewPanY = vh * 0.5 - cy * newS;
+        }
+        applyViewTransform();
+        if (showCellCodes) drawPatternCanvas();
+        syncPreviewToggles();
+      }
+
+      function resetView() {
+        viewScale = 1;
+        homeViewScale = 1;
+        viewPanX = 0;
+        viewPanY = 0;
+        homeViewPanX = 0;
+        homeViewPanY = 0;
+        applyViewTransform();
+        if (showCellCodes) drawPatternCanvas();
+        syncPreviewToggles();
+      }
+
+      function fitView() {
+        if (!craftViewport || !lastQuantized) {
+          resetView();
+          return;
+        }
+        const m = boardMetrics();
+        const { vw, vh } = viewportSize();
+        const sx = (vw * 0.92) / m.w;
+        const sy = (vh * 0.92) / m.h;
+        viewScale = Math.round(Math.max(0.25, Math.min(4, Math.min(sx, sy))) * 100) / 100;
+        /*
+         * On-screen pattern size is always ≈ m * viewScale:
+         * - normal: bitmap m, CSS scale viewScale
+         * - codes: bitmap already ×viewScale, CSS scale 1
+         */
+        const dispW = m.w * viewScale;
+        const dispH = m.h * viewScale;
+        viewPanX = (vw - dispW) / 2;
+        viewPanY = (vh - dispH) / 2;
+        homeViewScale = viewScale;
+        homeViewPanX = viewPanX;
+        homeViewPanY = viewPanY;
+        /* Key by bead grid size — not canvas CSS pixels (codes/cell must not re-fit) */
+        lastViewFitKey = lastQuantized.width + "x" + lastQuantized.height;
+        applyViewTransform();
+        if (showCellCodes) drawPatternCanvas();
+        syncPreviewToggles();
+      }
+
+      /** Restore first-fit scale + centered pan */
+      function restoreHomeView() {
+        if (!lastQuantized) return;
+        viewScale = homeViewScale || 1;
+        viewPanX = homeViewPanX;
+        viewPanY = homeViewPanY;
+        applyViewTransform();
+        if (showCellCodes) drawPatternCanvas();
+        syncPreviewToggles();
+      }
+
+      function setPanArmed(on) {
+        panArmed = !!on && !!lastQuantized;
+        if (panArmed) {
+          editArmed = false;
+          editPainting = false;
+        }
+        if (!panArmed) {
+          viewPanning = false;
+          viewPanLast = null;
+        }
+        syncEditChrome();
+        syncPreviewToggles();
+      }
+
+      function hasColorFocus() {
+        return craftFocusId != null && !(craftMode && craftGuide === "row");
+      }
+
+      function displayPatternData() {
+        const needOverlay =
+          craftMode || hasColorFocus() || craftPlaced.size > 0;
+        let data = needOverlay ? buildCraftImageData() : lastQuantized;
+        if (!data) return null;
+        if (mirrorH && FGImage.mirrorImageDataH) {
+          data = FGImage.mirrorImageDataH(data);
+        }
+        return data;
+      }
+
+      function cellCodeLabel(c) {
+        if (!c) return "";
+        if (c.code) return String(c.code);
+        if (c.id != null) return String(c.id);
+        return "";
+      }
+
+      function fillPalettes() {
+        FGPalettes.fillSelect(palEl, {
+          includeAuto: true,
+          selected: palEl.value || "auto",
+        });
+        if (window.FGCandySelect) FGCandySelect.refresh(palEl);
+      }
+
+      /* Phone only: config above preview, edit under canvas; desktop DOM stays classic */
+      (function perlerMobileLayout() {
+        const mq = window.matchMedia ? window.matchMedia("(max-width: 720px)") : null;
+        const workspace = document.querySelector(".workspace--perler");
+        const mUpload = document.getElementById("perler-m-upload");
+        const mUploadGrid = document.getElementById("perler-m-upload-grid");
+        const mConfig = document.getElementById("perler-m-config");
+        const mQuickGrid = document.getElementById("perler-m-quick-grid");
+        const mConfigRest = document.getElementById("perler-m-config-rest");
+        const mEdit = document.getElementById("perler-m-edit");
+        const paramsPanel = document.getElementById("perler-params");
+        const paramsGrid = document.getElementById("perler-params-grid");
+        const editPanelEl = document.getElementById("edit-panel");
+        const editHome = editPanelEl ? editPanelEl.parentNode : null;
+        const previewStageEl = document.getElementById("preview-stage");
+        if (
+          !mq ||
+          !workspace ||
+          !mUpload ||
+          !mUploadGrid ||
+          !mConfig ||
+          !mQuickGrid ||
+          !mConfigRest ||
+          !mEdit ||
+          !paramsPanel ||
+          !paramsGrid ||
+          !editPanelEl ||
+          !editHome ||
+          !previewStageEl
+        ) {
+          return;
+        }
+
+        const uploadPair = paramsGrid.querySelector('[data-m-slot="upload"]');
+        const sidePair = paramsGrid.querySelector('[data-m-slot="side"]');
+        const slotSide = document.getElementById("slot-side");
+        const slotPreset = document.getElementById("slot-preset");
+        const slotPalette = document.getElementById("slot-palette");
+        const slotDither = document.getElementById("slot-dither");
+
+        function fieldIn(slot) {
+          if (!slot) return null;
+          for (let i = 0; i < slot.children.length; i++) {
+            const c = slot.children[i];
+            if (c.classList && c.classList.contains("field")) return c;
+          }
+          return slot.querySelector(".field");
+        }
+
+        const homes = {
+          upload: { el: uploadPair, parent: paramsGrid, before: sidePair },
+          side: { el: fieldIn(slotSide), parent: slotSide, before: null },
+          preset: { el: fieldIn(slotPreset), parent: slotPreset, before: null },
+          dither: { el: fieldIn(slotDither), parent: slotDither, before: null },
+          palette: { el: fieldIn(slotPalette), parent: slotPalette, before: null },
+          params: { el: paramsPanel, parent: workspace, before: previewStageEl },
+          edit: { el: editPanelEl, parent: editHome, before: null },
+        };
+
+        function place(el, parent, before) {
+          if (!el || !parent) return;
+          if (before && before.parentNode === parent) parent.insertBefore(el, before);
+          else parent.appendChild(el);
+        }
+
+        let mobileOn = null;
+        function apply() {
+          const on = mq.matches;
+          if (on === mobileOn) return;
+          mobileOn = on;
+          document.body.classList.toggle("perler-is-mobile", on);
+          mUpload.hidden = !on;
+          mConfig.hidden = !on;
+          mEdit.hidden = !on;
+
+          if (on) {
+            place(homes.upload.el, mUploadGrid, null);
+            const sideEl = homes.side.el || fieldIn(slotSide);
+            const presetEl = homes.preset.el || fieldIn(slotPreset);
+            const ditherEl = homes.dither.el || fieldIn(slotDither);
+            const paletteEl = homes.palette.el || fieldIn(slotPalette);
+            homes.side.el = sideEl;
+            homes.preset.el = presetEl;
+            homes.dither.el = ditherEl;
+            homes.palette.el = paletteEl;
+            if (sideEl) {
+              sideEl.dataset.mField = "side";
+              place(sideEl, mQuickGrid, null);
+            }
+            if (presetEl) place(presetEl, mQuickGrid, null);
+            if (paletteEl) place(paletteEl, mQuickGrid, null);
+            if (ditherEl) place(ditherEl, mQuickGrid, null);
+            place(paramsPanel, mConfigRest, null);
+            place(editPanelEl, mEdit, null);
+            /* Phone hides follow UI — exit so dimmed craft view cannot get stuck */
+            if (craftMode) setCraftMode(false);
+            setEditArmed(false);
+            setPanArmed(false);
+            if (window.FGCandySelect) FGCandySelect.enhanceAll(document);
+          } else {
+            if (window.FGCandySelect) FGCandySelect.closeAll();
+            place(homes.upload.el, homes.upload.parent, homes.upload.before);
+            place(homes.side.el, homes.side.parent, null);
+            place(homes.preset.el, homes.preset.parent, null);
+            place(homes.dither.el, homes.dither.parent, null);
+            place(homes.palette.el, homes.palette.parent, null);
+            if (homes.side.el) delete homes.side.el.dataset.mField;
+            place(paramsPanel, homes.params.parent, homes.params.before);
+            place(editPanelEl, homes.edit.parent, null);
+            setEditArmed(false);
+            if (window.FGCandySelect) FGCandySelect.syncViewport();
+          }
+          syncEditChrome();
+          /* Viewport aspect changes on mobile ↔ desktop — re-fit square stage */
+          if (lastQuantized) {
+            requestAnimationFrame(() => fitView());
+          }
+        }
+
+        apply();
+        if (mq.addEventListener) mq.addEventListener("change", apply);
+        else if (mq.addListener) mq.addListener(apply);
+      })();
+
+      function syncNField() {
+        const dither = ditherEl && ditherEl.value;
+        const needBudget = dither === "handlike" || dither === "fs-v2";
+        fieldN.hidden = palEl.value !== "auto" && !needBudget;
+        const nLabel = fieldN && fieldN.querySelector('label[for="ncolors"]');
+        if (nLabel) {
+          const key = needBudget ? "perler.ncolors.budget" : "perler.ncolors";
+          nLabel.setAttribute("data-i18n", key);
+          nLabel.textContent = t(key);
+        }
+      }
+
+      function chartHref(palId) {
+        const id = palId || palEl.value || "beadants9";
+        const chartIds = FGPalettes.CHART_IDS || [];
+        const chartId = chartIds.indexOf(id) >= 0 ? id : "mard-185";
+        let href = "https://fastgames.cn/tools/bead-chart/?palette=" + encodeURIComponent(chartId);
+        try {
+          const lang = new URLSearchParams(location.search).get("lang");
+          if (lang) href += "&lang=" + encodeURIComponent(lang);
+        } catch (_) { /* ignore */ }
+        return href;
+      }
+
+      function syncChartLinks() {
+        const href = chartHref(palEl.value);
+        if (linkChart) linkChart.href = href;
+        if (relChart) relChart.href = href;
+      }
+
+      function syncCta() {
+        if (!ctaPlay) return;
+        /* OSS: Beadants / level CTA removed — keep shell hidden */
+        ctaPlay.hidden = true;
+        return;
+        const ready = !!sourceImg || !!lastQuantized;
+        ctaPlay.hidden = !ready;
+        const is9 = palEl.value === "beadants9";
+        const hintKey = is9 ? "perler.cta.hintReady" : "perler.cta.hintNeed";
+        if (ctaHint) {
+          ctaHint.setAttribute("data-i18n", hintKey);
+          ctaHint.textContent = t(hintKey);
+          ctaHint.classList.toggle("notice--warn", !is9);
+        }
+        const cardsEl = document.getElementById("level-cards");
+        if (cardsEl) {
+          if (ready && lastLevel && lastLevel.deck) {
+            cardsEl.hidden = false;
+            cardsEl.innerHTML =
+              t("perler.levelCards") +
+              " <strong>" +
+              lastLevel.deck.length +
+              "</strong>" +
+              (is9
+                ? ""
+                : ' · <span class="notice--warn">' +
+                  t("perler.levelRemapShort") +
+                  "</span>");
+          } else {
+            cardsEl.hidden = true;
+            cardsEl.textContent = "";
+          }
+        }
+        if (ctaSwitchRow) ctaSwitchRow.hidden = is9;
+        if (btnCta9) {
+          btnCta9.className = is9 ? "btn btn--ghost" : "btn btn--primary";
+        }
+        if (btnPlay) {
+          btnPlay.className = is9 ? "btn btn--teal" : "btn btn--ghost";
+          const playKey = is9 ? "perler.cta.playReady" : "perler.cta.play";
+          btnPlay.setAttribute("data-i18n", playKey);
+          btnPlay.textContent = t(playKey);
+        }
+        syncChartLinks();
+      }
+
+      function updateStructureUi() {
+        if (!structPanel || !lastQuantized || !window.FGBeadStructure) {
+          if (structPanel) structPanel.hidden = true;
+          return;
+        }
+        const report = FGBeadStructure.analyzeImageData(lastQuantized);
+        const advice = FGBeadStructure.boardAdvice(
+          lastQuantized.width,
+          lastQuantized.height,
+          report
+        );
+        structPanel.hidden = false;
+        const sevKey =
+          report.severity === "bad"
+            ? "perler.struct.bad"
+            : report.severity === "warn"
+              ? "perler.struct.warn"
+              : "perler.struct.ok";
+        if (structMsg) {
+          structMsg.textContent = t(sevKey);
+          structMsg.className =
+            "struct-panel__msg is-" + (report.severity || "ok");
+        }
+        if (structTips) {
+          structTips.textContent = t("perler.struct.tips")
+            .replace("{tips}", String(report.thinTips))
+            .replace("{bridges}", String(report.thinBridges))
+            .replace("{islands}", String(report.islands))
+            .replace("{max}", String(report.islandMax || 3));
+        }
+        if (boardAdviceEl) {
+          let boardLine = t("perler.board.nearest")
+            .replace("{n}", String(advice.nearest))
+            .replace("{w}", String(advice.w))
+            .replace("{h}", String(advice.h));
+          if (advice.fitsOne29) boardLine += " " + t("perler.board.fit29");
+          else if (advice.fitsOne52) {
+            boardLine +=
+              " " +
+              t("perler.board.fit52")
+                .replace("{tx}", String(advice.tilesX))
+                .replace("{ty}", String(advice.tilesY));
+          } else {
+            boardLine +=
+              " " +
+              t("perler.board.tiles")
+                .replace("{tx}", String(advice.tilesX))
+                .replace("{ty}", String(advice.tilesY))
+                .replace("{n}", String(advice.tiles29));
+          }
+          if (advice.marginSuggest) boardLine += " " + t("perler.board.margin");
+          boardAdviceEl.textContent = boardLine;
+        }
+      }
+
+      function setExportEnabled(on) {
+        [
+          btnExport,
+          btnExportCodes,
+          btnCsv,
+          btnPrint,
+          btnLevel,
+          stickyPng,
+          stickyCodes,
+          stickyPrint,
+          btnToPaint,
+        ].forEach((b) => {
+          if (b) b.disabled = !on;
+        });
+        sticky.hidden = !on;
+        if (handoffPaint) handoffPaint.hidden = true;
+        if (btnRotate) btnRotate.disabled = !sourceImg;
+        if (btnCraft) {
+          btnCraft.disabled = !on;
+          if (!on && craftMode) setCraftMode(false);
+        }
+        if (!on) {
+          showCellCodes = false;
+          mirrorH = false;
+          panArmed = false;
+          lastViewFitKey = "";
+          resetView();
+        }
+        syncPreviewToggles();
+        if (!on && structPanel) structPanel.hidden = true;
+        syncCta();
+      }
+
+      function showPaletteBanner(palId, palName) {
+        if (!paletteBanner) return;
+        if (!palId && !palName) {
+          paletteBanner.hidden = true;
+          return;
+        }
+        let name = "";
+        if (palName) name = FGPalettes.displayName(palName);
+        else if (palId === "auto" || palId === "extracted") name = t("perler.pal.auto");
+        else if (FGPalettes.PRESETS.some((p) => p.id === palId)) {
+          name = FGPalettes.displayName(FGPalettes.byId(palId).name);
+        } else name = String(palId);
+        paletteBanner.hidden = false;
+        paletteBanner.textContent = t("perler.paletteApplied").replace("{name}", name);
+      }
+
+      function applyPreset(id) {
+        applyingPreset = true;
+        if (id === "photo") {
+          sideEl.value = "96";
+          fitEl.value = "cover";
+          palEl.value = "auto";
+          nEl.value = "28";
+          ditherEl.value = "fs";
+          contrastEl.value = "108";
+          satEl.value = "105";
+          viewEl.value = "beads";
+          cellEl.value = "8";
+          tipKey = "perler.tip.photo";
+          if (adv) adv.open = false;
+        } else if (id === "detail") {
+          sideEl.value = "128";
+          fitEl.value = "cover";
+          palEl.value = "auto";
+          nEl.value = "36";
+          ditherEl.value = "fs";
+          contrastEl.value = "105";
+          satEl.value = "100";
+          viewEl.value = "beads";
+          cellEl.value = "6";
+          tipKey = "perler.tip.detail";
+          if (adv) adv.open = false;
+        } else if (id === "beadants") {
+          sideEl.value = "96";
+          fitEl.value = "cover";
+          palEl.value = "beadants9";
+          ditherEl.value = "fs";
+          contrastEl.value = "105";
+          satEl.value = "112";
+          viewEl.value = "beads";
+          cellEl.value = "6";
+          tipKey = "perler.tip.beadants";
+          if (adv) adv.open = true;
+        } else if (id === "handlike") {
+          sideEl.value = "96";
+          fitEl.value = "cover";
+          palEl.value = "auto";
+          nEl.value = "28";
+          ditherEl.value = "handlike";
+          contrastEl.value = "110";
+          satEl.value = "108";
+          viewEl.value = "beads";
+          cellEl.value = "8";
+          tipKey = "perler.tip.handlike";
+          if (adv) adv.open = false;
+        }
+        tip.setAttribute("data-i18n", tipKey);
+        tip.textContent = t(tipKey);
+        sideHint.textContent = sideEl.value;
+        contrastVal.textContent = (contrastEl.value / 100).toFixed(2);
+        satVal.textContent = (satEl.value / 100).toFixed(2);
+        syncNField();
+        applyingPreset = false;
+      }
+
+      function markCustom() {
+        if (!applyingPreset && presetEl.value !== "custom") presetEl.value = "custom";
+      }
+
+      function stockPaletteId() {
+        const id = palEl.value;
+        if (!id || id === "auto") return null;
+        return id;
+      }
+
+      function isStockEnabled() {
+        return !!(stockEnabledEl && stockEnabledEl.checked && stockPaletteId());
+      }
+
+      function isStockOnly() {
+        return isStockEnabled() && stockOnlyEl && stockOnlyEl.checked;
+      }
+
+      function currentOwnedSet() {
+        const id = stockPaletteId();
+        if (!id || !FGBeadStock) return new Set();
+        return FGBeadStock.ownedSet(id);
+      }
+
+      function syncStockSwatchState() {
+        if (!stockSwatches) return;
+        const id = stockPaletteId();
+        const auto = !id;
+        if (stockAutoHint) {
+          stockAutoHint.hidden = !auto;
+          if (auto) stockAutoHint.removeAttribute("hidden");
+          else stockAutoHint.setAttribute("hidden", "");
+        }
+        if (stockOnlyEl) stockOnlyEl.disabled = auto || !(stockEnabledEl && stockEnabledEl.checked);
+        if (stockEnabledEl) stockEnabledEl.disabled = auto;
+        if (btnStockAll) btnStockAll.disabled = auto || !(stockEnabledEl && stockEnabledEl.checked);
+        if (btnStockNone) btnStockNone.disabled = auto || !(stockEnabledEl && stockEnabledEl.checked);
+        if (auto) return;
+        const owned = FGBeadStock.ownedSet(id);
+        const enabled = !!(stockEnabledEl && stockEnabledEl.checked);
+        stockSwatches.classList.toggle("is-disabled", !enabled);
+        stockSwatches.querySelectorAll(".stock-swatch").forEach((b) => {
+          const cid = +(b.dataset.colorId || 0);
+          const on = owned.has(cid);
+          b.classList.toggle("is-owned", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+          b.disabled = !enabled;
+        });
+      }
+
+      function paintStockSwatches() {
+        if (!stockSwatches) return;
+        const id = stockPaletteId();
+        const auto = !id;
+        // Same palette grid already present: only sync flags (no DOM wipe / no jump).
+        if (
+          !auto &&
+          stockSwatches.dataset.palette === id &&
+          stockSwatches.childElementCount > 0
+        ) {
+          syncStockSwatchState();
+          return;
+        }
+        const side = document.getElementById("bead-side");
+        const scrollTop = side ? side.scrollTop : 0;
+        stockSwatches.innerHTML = "";
+        delete stockSwatches.dataset.palette;
+        syncStockSwatchState();
+        if (auto) {
+          if (side) side.scrollTop = scrollTop;
+          return;
+        }
+        const pal = FGPalettes.byId(id);
+        const owned = FGBeadStock.ownedSet(id);
+        const enabled = !!(stockEnabledEl && stockEnabledEl.checked);
+        stockSwatches.classList.toggle("is-disabled", !enabled);
+        stockSwatches.dataset.palette = id;
+        pal.colors.forEach((c) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "stock-swatch" + (owned.has(c.id) ? " is-owned" : "");
+          b.dataset.colorId = String(c.id);
+          b.style.background = c.hex;
+          b.title = FGPalettes.legendLabel(c);
+          b.setAttribute("aria-pressed", owned.has(c.id) ? "true" : "false");
+          b.disabled = !enabled;
+          b.addEventListener("click", (e) => {
+            e.preventDefault();
+            toggleStockColor(id, c.id, b);
+          });
+          stockSwatches.appendChild(b);
+        });
+        if (side) side.scrollTop = scrollTop;
+      }
+
+      function toggleStockColor(paletteId, colorId, btn) {
+        const next = FGBeadStock.getOwnedIds(paletteId);
+        const i = next.indexOf(colorId);
+        const nowOwned = i < 0;
+        if (nowOwned) next.push(colorId);
+        else next.splice(i, 1);
+        FGBeadStock.setOwnedIds(paletteId, next);
+        // Toggle in place — do not rebuild the grid (avoids scroll jump / focus loss).
+        if (btn) {
+          btn.classList.toggle("is-owned", nowOwned);
+          btn.setAttribute("aria-pressed", nowOwned ? "true" : "false");
+        }
+        const side = document.getElementById("bead-side");
+        const scrollTop = side ? side.scrollTop : 0;
+        if (lastCounts) updateStockMissing(lastCounts, lastPalette);
+        if (side) side.scrollTop = scrollTop;
+        FGTool.track("perler", "stock_toggle");
+      }
+
+      function updateStockMissing(counts, palette) {
+        if (!stockMissingEl) return;
+        const side = document.getElementById("bead-side");
+        const scrollTop = side ? side.scrollTop : 0;
+        if (!isStockEnabled() || !counts || !palette) {
+          stockMissingEl.hidden = true;
+          stockMissingEl.setAttribute("hidden", "");
+          stockMissingEl.innerHTML = "";
+          if (side) side.scrollTop = scrollTop;
+          return;
+        }
+        const missing = FGBeadStock.missingColors(counts, palette, currentOwnedSet());
+        if (!missing.length) {
+          stockMissingEl.hidden = false;
+          stockMissingEl.removeAttribute("hidden");
+          stockMissingEl.innerHTML =
+            `<div class="panel__title">${t("perler.stock.missingTitle")}</div>` +
+            `<p class="stock-missing__ok">${t("perler.stock.missingNone")}</p>`;
+          if (side) side.scrollTop = scrollTop;
+          return;
+        }
+        let missBeads = 0;
+        missing.forEach((c) => {
+          missBeads += counts[c.id] || 0;
+        });
+        stockMissingEl.hidden = false;
+        stockMissingEl.removeAttribute("hidden");
+        stockMissingEl.innerHTML =
+          `<div class="panel__title">${t("perler.stock.missingTitle")}</div>` +
+          `<p class="stock-missing__warn">${t("perler.stock.missingSummary")
+            .replace("{n}", String(missing.length))
+            .replace("{beads}", String(missBeads))}</p>` +
+          `<ul class="stock-missing__list">` +
+          missing
+            .map(
+              (c) =>
+                `<li><span class="legend__chip" style="background:${c.hex}"></span>` +
+                `<span>${FGPalettes.legendLabel(c)}</span><strong>${counts[c.id] || 0}</strong></li>`
+            )
+            .join("") +
+          `</ul>`;
+        if (side) side.scrollTop = scrollTop;
+      }
+
+      function resolvePalette(sampleData) {
+        let palette;
+        if (palEl.value === "auto") {
+          palette = FGPalettes.fromExtracted(FGImage.extractPalette(sampleData, +nEl.value || 28));
+        } else {
+          palette = FGPalettes.byId(palEl.value);
+        }
+        if (isStockOnly() && palette && palette.id !== "auto") {
+          const filtered = FGBeadStock.filterPaletteToStock(palette, currentOwnedSet());
+          if (filtered) {
+            FGTool.track("perler", "stock_only_match");
+            return filtered;
+          }
+          // Need ≥2 owned colors; otherwise keep full palette (do not silently pretend stock-only worked).
+          FGTool.track("perler", "stock_only_fallback");
+          if (tip) tip.textContent = t("perler.stock.onlyFail");
+        }
+        return palette;
+      }
+
+      function buyHintKey(total, sideLen) {
+        if (total >= 9000) return "perler.buy.huge";
+        if (total >= 4500) return "perler.buy.large";
+        if (sideLen >= 120) return "perler.buy.fine";
+        return "perler.buy.ok";
+      }
+
+      function updateBeadSummary(counts, palette, gw, gh, total) {
+        const w = Math.max(1, gw | 0);
+        const h = Math.max(1, gh | 0);
+        beadSummary.hidden = false;
+        beadTotal.innerHTML =
+          `<strong>${total}</strong> ${t("perler.stat.beads")} · ` +
+          `<strong>${Object.keys(counts).length}</strong> ${t("perler.stat.colors")} · ` +
+          `<strong>${w}×${h}</strong>`;
+        beadBuy.textContent = t(buyHintKey(total, Math.max(w, h)));
+        const rows = palette.colors
+          .map((c) => ({ c, n: counts[c.id] || 0 }))
+          .filter((r) => r.n > 0)
+          .sort((a, b) => b.n - a.n);
+        const show = rows.slice(0, 14);
+        beadList.innerHTML =
+          show
+            .map(
+              (r) =>
+                `<li><span class="legend__chip" style="background:${r.c.hex}"></span>` +
+                `<span>${FGPalettes.legendLabel(r.c)}</span><strong>${r.n}</strong></li>`
+            )
+            .join("") +
+          (rows.length > show.length
+            ? `<li class="bead-summary__more">${t("perler.buy.more").replace("{n}", String(rows.length - show.length))}</li>`
+            : "");
+      }
+
+      function cloneImageData(img) {
+        return new ImageData(new Uint8ClampedArray(img.data), img.width, img.height);
+      }
+
+      function clearUndo() {
+        undoStack = [];
+        if (btnEditUndo) btnEditUndo.disabled = true;
+      }
+
+      function pushUndo() {
+        if (!lastQuantized) return;
+        undoStack.push({
+          img: cloneImageData(lastQuantized),
+          mask: cloneEraseMask(),
+        });
+        while (undoStack.length > UNDO_MAX) undoStack.shift();
+        if (btnEditUndo) btnEditUndo.disabled = false;
+      }
+
+      function setEditTool(tool, opts) {
+        const o = opts || {};
+        const next = tool || "paint";
+        if (o.toggle && editArmed && next === editTool) {
+          setEditArmed(false);
+          editPainting = false;
+          syncPreviewToggles();
+          return;
+        }
+        editTool = next;
+        if (panArmed) setPanArmed(false);
+        editArmed = true;
+        if (craftMode) setCraftMode(false);
+        if (editPanel && editPanel.hidden) syncEditPanel(true);
+        syncEditChrome();
+        syncPreviewToggles();
+      }
+
+      /** Brush palette is always a fixed craft set — never the auto-extracted photo colors. */
+      function getEditPalette() {
+        const id = palEl.value;
+        if (id && id !== "auto") {
+          return FGPalettes.byId(id) || FGPalettes.byId("mard-221");
+        }
+        return FGPalettes.byId("mard-221");
+      }
+
+      function paintEditSwatches() {
+        const editPal = getEditPalette();
+        if (!editSwatches || !editPal) return;
+        if (!brushColor || !editPal.colors.some((c) => c.id === brushColor.id)) {
+          brushColor = editPal.colors[0] || null;
+        }
+        editSwatches.innerHTML = "";
+        editPal.colors.forEach((c) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "edit-swatch" + (brushColor && brushColor.id === c.id ? " is-active" : "");
+          b.style.background = c.hex;
+          b.title = FGPalettes.legendLabel(c);
+          b.setAttribute("aria-label", FGPalettes.legendLabel(c));
+          b.addEventListener("click", () => {
+            brushColor = c;
+            if (isEraseTool(editTool) || !editArmed) setEditTool("paint");
+            paintEditSwatches();
+          });
+          editSwatches.appendChild(b);
+        });
+      }
+
+      function syncEditPanel(show) {
+        if (!editPanel) return;
+        editPanel.hidden = !show;
+        if (show) {
+          paintEditSwatches();
+          /* Stay idle until user taps a tool — web + phone */
+          if (!editArmed) syncEditChrome();
+          else setEditTool(editTool);
+          if (btnEditUndo) btnEditUndo.disabled = undoStack.length === 0;
+        } else {
+          editArmed = false;
+          syncEditChrome();
+        }
+      }
+
+      function syncCraftRowLabel() {
+        if (!craftRowLabel || !lastQuantized) return;
+        const h = lastQuantized.height;
+        craftRow = Math.max(0, Math.min(h - 1, craftRow));
+        craftRowLabel.textContent = t("perler.craft.rowOf")
+          .replace("{n}", String(craftRow + 1))
+          .replace("{total}", String(h));
+      }
+
+      function syncCraftChrome() {
+        if (previewStage) previewStage.classList.toggle("is-craft", craftMode);
+        if (craftDock) {
+          craftDock.hidden = !craftMode;
+          if (craftMode) craftDock.removeAttribute("hidden");
+          else craftDock.setAttribute("hidden", "");
+        }
+        if (craftDockBar) {
+          craftDockBar.title = craftMode ? t("perler.craft.hint") : "";
+        }
+        if (btnCraft) {
+          btnCraft.classList.toggle("is-active", craftMode);
+          btnCraft.textContent = t(craftMode ? "perler.craft.toggleOn" : "perler.craft.toggle");
+        }
+        if (craftRowCtrl) {
+          const showRow = craftMode && craftGuide === "row";
+          craftRowCtrl.hidden = !showRow;
+          if (showRow) craftRowCtrl.removeAttribute("hidden");
+          else craftRowCtrl.setAttribute("hidden", "");
+        }
+        document.querySelectorAll(".craft-mode").forEach((b) => {
+          b.classList.toggle("is-active", b.getAttribute("data-craft-mode") === craftGuide);
+        });
+        if (btnCraftAxis) {
+          btnCraftAxis.classList.toggle("is-active", craftAxisOn);
+          btnCraftAxis.setAttribute("aria-pressed", craftAxisOn ? "true" : "false");
+          btnCraftAxis.title = t("perler.craft.axisHint");
+          btnCraftAxis.hidden = !craftMode;
+        }
+        syncCraftRowLabel();
+        applyViewTransform();
+        syncPreviewToggles();
+        syncCraftAxisUi();
+        if (craftMode) rebuildCraftStepList();
+        syncCraftStepUi();
+      }
+
+      function setCraftMode(on) {
+        const want = !!on && !!lastQuantized;
+        if (craftMode && !want) {
+          /* Leaving follow mode: persist cell progress for this pattern */
+          saveCraftProgressNow();
+        }
+        craftMode = want;
+        if (!craftMode) {
+          viewPanning = false;
+          viewPanLast = null;
+          craftPin = null;
+          craftStepFromNav = false;
+          craftStepIndex = -1;
+          craftStepList = [];
+          restoreHomeView();
+        } else {
+          syncCraftProgressToPattern();
+          if (craftGuide === "color" && craftFocusId == null) {
+            const first = lastPalette && lastPalette.colors.find((c) => (lastCounts[c.id] || 0) > 0);
+            craftFocusId = first ? first.id : null;
+          }
+          if (craftGuide === "row") craftFocusId = null;
+          craftRow = Math.max(0, Math.min(craftRow, (lastQuantized.height || 1) - 1));
+          craftPin = null;
+          craftStepFromNav = false;
+          rebuildCraftStepList({ reset: true });
+          FGTool.track("perler", "craft_on");
+        }
+        syncCraftChrome();
+        syncEditPanel(!craftMode && !!lastQuantized);
+        syncEraseUi();
+        if (lastQuantized) drawPatternCanvas();
+        paintLegend(lastCounts || {});
+        syncCraftAxisUi();
+        syncCraftStepUi();
+      }
+
+      /** Switch by-color / by-row and drop the other mode's overlays. */
+      function setCraftGuide(mode) {
+        const next = mode === "row" ? "row" : "color";
+        if (next === craftGuide) {
+          syncCraftChrome();
+          syncCraftStepUi();
+          return;
+        }
+        craftGuide = next;
+        craftPin = null;
+        craftStepFromNav = false;
+        if (craftGuide === "row") {
+          craftFocusId = null;
+          craftRow = 0;
+        } else {
+          craftRow = 0;
+          if (craftFocusId == null) {
+            const first =
+              lastPalette &&
+              lastPalette.colors.find((c) => (lastCounts[c.id] || 0) > 0);
+            craftFocusId = first ? first.id : null;
+          }
+        }
+        rebuildCraftStepList({ reset: true });
+        syncCraftChrome();
+        paintLegend(lastCounts || {});
+        if (lastQuantized) drawPatternCanvas();
+        syncCraftAxisUi();
+        syncCraftStepUi();
+      }
+
+      function buildCraftImageData() {
+        const src = lastQuantized;
+        const out = cloneImageData(src);
+        const d = out.data;
+        const w = src.width;
+        const h = src.height;
+        const rgbToId = Object.create(null);
+        lastPalette.colors.forEach((c) => {
+          const rgb = c.rgb || FGPalettes.hexToRgb(c.hex);
+          rgbToId[rgb[0] + "," + rgb[1] + "," + rgb[2]] = c.id;
+        });
+        const rowMode = craftMode && craftGuide === "row";
+        /* Color focus: legend click or craft by-color; row mode shows every hue on the active row. */
+        const focusId = rowMode ? null : craftFocusId;
+        /* Dim non-focus in place (keep silhouette) — do not erase the board. */
+        const fogR = 48;
+        const fogG = 50;
+        const fogB = 58;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
+            if (d[i + 3] < 16) continue;
+            const id = rgbToId[d[i] + "," + d[i + 1] + "," + d[i + 2]];
+            const vx = mirrorH ? w - 1 - x : x;
+            const placed = isCellPlaced(vx, y);
+            const offRow = rowMode && y !== craftRow;
+            const notFocus =
+              focusId != null && (id == null || !colorIdEq(id, focusId));
+            if (!offRow && !notFocus && !placed) {
+              /* Focus (or all colors when no focus): keep true hue. */
+              continue;
+            }
+            if (notFocus || offRow) {
+              /* Keep hue, dim strongly so the full grid stays in place and readable. */
+              const keep = offRow ? 0.12 : 0.28;
+              const aMul = offRow ? 0.35 : 0.5;
+              d[i] = Math.round(d[i] * keep + fogR * (1 - keep));
+              d[i + 1] = Math.round(d[i + 1] * keep + fogG * (1 - keep));
+              d[i + 2] = Math.round(d[i + 2] * keep + fogB * (1 - keep));
+              d[i + 3] = Math.round(d[i + 3] * aMul);
+              continue;
+            }
+            /* Placed cell: muted original (overlay draws hatch on top). */
+            const keep = 0.35;
+            d[i] = Math.round(d[i] * keep + fogR * (1 - keep));
+            d[i + 1] = Math.round(d[i + 1] * keep + fogG * (1 - keep));
+            d[i + 2] = Math.round(d[i + 2] * keep + fogB * (1 - keep));
+            d[i + 3] = Math.round(d[i + 3] * 0.55);
+          }
+        }
+        return out;
+      }
+
+      /** Hatch / dim mask on placed beads (visual coords; canvas is already mirrored). */
+      function drawPlacedOverlay(cell, beads) {
+        if (!craftPlaced.size || !lastQuantized || !canvas) return;
+        const gap = beads ? 1 : 0;
+        const step = cell + gap;
+        const ctx = canvas.getContext("2d");
+        const hatch = Math.max(2, Math.round(cell * 0.22));
+        ctx.save();
+        craftPlaced.forEach((key) => {
+          const parts = String(key).split(",");
+          const vx = +parts[0];
+          const y = +parts[1];
+          if (!Number.isFinite(vx) || !Number.isFinite(y)) return;
+          const x0 = vx * step;
+          const y0 = y * step;
+          if (beads) {
+            const cx = x0 + cell / 2;
+            const cy = y0 + cell / 2;
+            const r = cell * 0.46;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(10, 8, 18, 0.5)";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 0.92, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(255, 229, 102, 0.55)";
+            ctx.lineWidth = Math.max(1, cell * 0.06);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx - r * 0.35, cy);
+            ctx.lineTo(cx - r * 0.08, cy + r * 0.32);
+            ctx.lineTo(cx + r * 0.42, cy - r * 0.28);
+            ctx.strokeStyle = "rgba(255, 236, 160, 0.9)";
+            ctx.lineWidth = Math.max(1.2, cell * 0.1);
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = "rgba(10, 8, 18, 0.42)";
+            ctx.fillRect(x0, y0, cell, cell);
+            ctx.strokeStyle = "rgba(255, 229, 102, 0.4)";
+            ctx.lineWidth = 1;
+            for (let s = -cell; s < cell * 2; s += hatch) {
+              ctx.beginPath();
+              ctx.moveTo(x0 + s, y0);
+              ctx.lineTo(x0 + s + cell, y0 + cell);
+              ctx.stroke();
+            }
+          }
+        });
+        ctx.restore();
+      }
+
+      /** High-contrast ring on focus beads (light → dark edge, dark → bright edge). */
+      function drawCraftFocusMarks(cell, beads) {
+        if (!hasColorFocus() || !lastPalette || !lastQuantized) return;
+        const focus = lastPalette.colors.find((c) => c.id === craftFocusId);
+        if (!focus) return;
+        const rgb = focus.rgb || FGPalettes.hexToRgb(focus.hex);
+        if (!rgb) return;
+        const fr = rgb[0];
+        const fg = rgb[1];
+        const fb = rgb[2];
+        const lum = 0.2126 * fr + 0.7152 * fg + 0.0722 * fb;
+        const edge = lum >= 150 ? "rgba(20,14,8,0.92)" : "rgba(255,236,160,0.95)";
+        const halo = lum >= 150 ? "rgba(255,255,255,0.75)" : "rgba(20,14,8,0.55)";
+        const src = lastQuantized;
+        const d = src.data;
+        const w = src.width;
+        const h = src.height;
+        const gap = beads ? 1 : 0;
+        const step = cell + gap;
+        const ctx = canvas.getContext("2d");
+        const lw = Math.max(1.5, Math.min(3.5, cell * 0.12));
+        ctx.save();
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
+            if (d[i + 3] < 16) continue;
+            if (d[i] !== fr || d[i + 1] !== fg || d[i + 2] !== fb) continue;
+            const cx = x * step + cell / 2;
+            const cy = y * step + cell / 2;
+            if (beads) {
+              const r = cell * 0.46;
+              ctx.beginPath();
+              ctx.arc(cx, cy, r + lw * 0.35, 0, Math.PI * 2);
+              ctx.strokeStyle = halo;
+              ctx.lineWidth = lw + 1.2;
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, 0, Math.PI * 2);
+              ctx.strokeStyle = edge;
+              ctx.lineWidth = lw;
+              ctx.stroke();
+            } else {
+              const x0 = x * step + 0.5;
+              const y0 = y * step + 0.5;
+              const s = cell - 1;
+              ctx.strokeStyle = halo;
+              ctx.lineWidth = lw + 1;
+              ctx.strokeRect(x0 - 0.5, y0 - 0.5, s + 1, s + 1);
+              ctx.strokeStyle = edge;
+              ctx.lineWidth = lw;
+              ctx.strokeRect(x0, y0, s, s);
+            }
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawPatternCanvas() {
+        if (!lastQuantized || !lastPalette) return;
+        const side = lastQuantized.width;
+        const m = boardMetrics();
+        let cell = m.baseCell;
+        const beads = m.beads;
+        const data = displayPatternData();
+        if (!data) return;
+        if (showCellCodes) {
+          // Rasterize at zoom × device pixels so codes sit on bead centers and stay sharp.
+          const dpr = Math.min(2, window.devicePixelRatio || 1);
+          cell = Math.max(8, Math.round(m.baseCell * viewScale * dpr));
+          const maxEdge = 4096;
+          if (m.cols * cell > maxEdge) cell = Math.max(8, Math.floor(maxEdge / m.cols));
+          if (m.rows * cell > maxEdge) cell = Math.max(8, Math.floor(maxEdge / m.rows));
+        }
+        if (beads) FGImage.drawBeadGrid(canvas, data, cell, 1);
+        else {
+          FGImage.drawImageData(canvas, data, cell);
+          if (gridEl.checked) {
+            FGImage.drawGridOverlay(canvas, lastQuantized.width, lastQuantized.height, cell);
+          }
+        }
+        if (showCellCodes && FGImage.drawCellCodeOverlay) {
+          FGImage.drawCellCodeOverlay(canvas, data, cell, {
+            beads: beads,
+            gap: beads ? 1 : 0,
+            paletteColors: lastPalette.colors,
+            labelFn: cellCodeLabel,
+            sharp: true,
+          });
+          const dpr = Math.min(2, window.devicePixelRatio || 1);
+          canvas.style.width = canvas.width / dpr + "px";
+          canvas.style.height = canvas.height / dpr + "px";
+        } else {
+          canvas.style.width = "";
+          canvas.style.height = "";
+        }
+        if (hasColorFocus()) {
+          drawCraftFocusMarks(cell, beads);
+        }
+        drawPlacedOverlay(cell, beads);
+        // Row guide line (same row index; mirror only flips X)
+        if (craftMode && craftGuide === "row") {
+          const ctx = canvas.getContext("2d");
+          const step = beads ? cell + 1 : cell;
+          const y0 = craftRow * step;
+          ctx.save();
+          ctx.strokeStyle = "rgba(232,160,84,0.95)";
+          ctx.lineWidth = Math.max(2, Math.round(cell * 0.06));
+          ctx.strokeRect(0.5, y0 + 0.5, canvas.width - 1, step - 1);
+          ctx.restore();
+        }
+        syncCraftAxisUi();
+      }
+
+      function paintLegend(counts) {
+        if (!legend || !lastPalette) return;
+        const owned = isStockEnabled() ? currentOwnedSet() : null;
+        const colorFocusOn = hasColorFocus();
+        legend.innerHTML = lastPalette.colors
+          .map((c) => {
+            const n = counts[c.id] || 0;
+            if (!n) return "";
+            const label = FGPalettes.legendLabel(c);
+            const miss = owned && !owned.has(c.id);
+            const focus = colorFocusOn && colorIdEq(craftFocusId, c.id);
+            const done =
+              (craftMode || craftPlaced.size > 0) && craftDoneIds.has(c.id);
+            const cls =
+              "legend__row legend__row--pick" +
+              (miss ? " legend__row--missing" : "") +
+              (craftMode ? " legend__row--craft" : "") +
+              (focus ? " is-focus" : "") +
+              (done ? " is-done" : "");
+            const rgb = c.rgb || (FGPalettes.hexToRgb && FGPalettes.hexToRgb(c.hex));
+            const lum = rgb
+              ? 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+              : 128;
+            const chipExtra =
+              lum >= 200
+                ? " legend__chip--light"
+                : lum <= 55
+                  ? " legend__chip--dark"
+                  : "";
+            const doneCtrl = craftMode
+              ? `<label class="legend__done" data-craft-done="${c.id}">` +
+                `<input type="checkbox" ${craftDoneIds.has(c.id) ? "checked" : ""} />` +
+                `<span>${t("perler.craft.done")}</span></label>`
+              : "";
+            const focusHint = String(t("perler.legend.focusHint") || "")
+              .replace(/&/g, "&amp;")
+              .replace(/"/g, "&quot;");
+            return (
+              `<div class="${cls}" data-craft-focus="${c.id}" title="${focusHint}">` +
+              `<span class="legend__chip${chipExtra}" style="background:${c.hex}"></span>` +
+              `<span class="legend__label">${label}${miss ? " · " + t("perler.stock.tagMissing") : ""}</span>` +
+              doneCtrl +
+              `<strong style="margin-left:auto">${n}</strong></div>`
+            );
+          })
+          .join("");
+
+        legend.querySelectorAll("[data-craft-focus]").forEach((row) => {
+          row.addEventListener("click", (e) => {
+            if (e.target && e.target.closest("[data-craft-done]")) return;
+            const raw = row.getAttribute("data-craft-focus");
+            const matched =
+              lastPalette &&
+              lastPalette.colors.find((c) => colorIdEq(c.id, raw));
+            const id = matched ? matched.id : +raw;
+            if (craftMode && craftGuide === "row") {
+              craftGuide = "color";
+              craftRow = 0;
+              syncCraftChrome();
+            }
+            craftFocusId = colorIdEq(craftFocusId, id) ? null : id;
+            /* Color pick: only recolor — freeze camera (no pan / no re-fit) */
+            craftPin = null;
+            craftStepFromNav = false;
+            if (craftMode) rebuildCraftStepList({ reset: true });
+            const keepScale = viewScale;
+            const keepPanX = viewPanX;
+            const keepPanY = viewPanY;
+            paintLegend(lastCounts || {});
+            drawPatternCanvas();
+            viewScale = keepScale;
+            viewPanX = keepPanX;
+            viewPanY = keepPanY;
+            applyViewTransform();
+            syncCraftStepUi();
+            FGTool.track("perler", craftMode ? "craft_focus" : "legend_focus");
+          });
+        });
+        if (!craftMode) return;
+        legend.querySelectorAll("[data-craft-done] input").forEach((inp) => {
+          inp.addEventListener("click", (e) => e.stopPropagation());
+          inp.addEventListener("change", () => {
+            const raw = inp.closest("[data-craft-done]").getAttribute("data-craft-done");
+            const matched =
+              lastPalette &&
+              lastPalette.colors.find((c) => colorIdEq(c.id, raw));
+            const id = matched ? matched.id : +raw;
+            setColorCellsPlaced(id, !!inp.checked);
+            syncCraftDoneIdsFromPlaced();
+            saveCraftProgressNow();
+            rebuildCraftStepList({ reset: true });
+            paintLegend(lastCounts || {});
+            drawPatternCanvas();
+            syncCraftStepUi();
+            FGTool.track("perler", inp.checked ? "craft_done" : "craft_undone");
+          });
+        });
+      }
+
+      function refreshFromQuantized() {
+        if (!lastQuantized || !lastPalette) return;
+        const gw = lastQuantized.width;
+        const gh = lastQuantized.height;
+        lastSide = Math.max(gw, gh);
+        lastGridCanvas = document.createElement("canvas");
+        lastGridCanvas.width = gw;
+        lastGridCanvas.height = gh;
+        lastGridCanvas.getContext("2d").putImageData(lastQuantized, 0, 0);
+
+        const counts = FGImage.countColors(lastQuantized, lastPalette.colors);
+        lastCounts = counts;
+        syncCraftProgressToPattern();
+
+        drawPatternCanvas();
+        const fitKey = gw + "x" + gh;
+        if (!lastViewFitKey || fitKey !== lastViewFitKey) fitView();
+        const levelSide = Math.max(gw, gh);
+        const levelResult = FGBeadLevel.imageToLevel(lastGridCanvas, {
+          side: levelSide,
+          chunk: 32,
+          name: (nameEl && nameEl.value.trim()) || "Custom",
+          id: 99,
+        });
+        lastLevel = levelResult.level;
+        let total = 0;
+        Object.values(counts).forEach((n) => (total += n));
+        // Craft stats only — game remap / deck counts live in #cta-play.
+        stats.innerHTML =
+          `<span><strong>${gw}×${gh}</strong> ${t("perler.stat.grid")}</span>` +
+          `<span>${t("perler.stat.beads")} <strong>${total}</strong></span>` +
+          `<span>${t("perler.stat.colors")} <strong>${Object.keys(counts).length}</strong> / ${lastPalette.colors.length}</span>` +
+          `<span>${FGPalettes.displayName(lastPalette.name)}</span>`;
+
+        updateBeadSummary(counts, lastPalette, gw, gh, total);
+        updateStockMissing(counts, lastPalette);
+        updateStructureUi();
+        paintLegend(counts);
+        if (btnCraft) btnCraft.disabled = false;
+        syncCraftChrome();
+        syncDraftChrome();
+        setExportEnabled(true);
+        syncCta();
+        syncEditPanel(!craftMode);
+      }
+
+      function applyQuantizedHandoff(imageData, paletteOrId) {
+        const pal =
+          paletteOrId && paletteOrId.colors
+            ? paletteOrId
+            : (paletteOrId &&
+                paletteOrId !== "auto" &&
+                FGPalettes.PRESETS.some((p) => p.id === paletteOrId) &&
+                FGPalettes.byId(paletteOrId)) ||
+              FGPalettes.byId("mard-221");
+        applyingPreset = true;
+        presetEl.value = "custom";
+        if (FGPalettes.PRESETS.some((p) => p.id === pal.id)) palEl.value = pal.id;
+        applyingPreset = false;
+        syncNField();
+        lastPalette = pal;
+        lastQuantizedBase = cloneImageData(imageData);
+        lastSide = imageData.width;
+        clearEraseMask();
+        clearUndo();
+        const c = document.createElement("canvas");
+        c.width = imageData.width;
+        c.height = imageData.height;
+        c.getContext("2d").putImageData(imageData, 0, 0);
+        sourceImg = c;
+        fromTemplate = false;
+        showPaletteBanner(pal.id, pal.name);
+        applyRmBgFromBase();
+      }
+
+      function pixelIndex(x, y) {
+        return (y * lastQuantized.width + x) * 4;
+      }
+
+      function readPixel(x, y) {
+        const i = pixelIndex(x, y);
+        const d = lastQuantized.data;
+        return { r: d[i], g: d[i + 1], b: d[i + 2], a: d[i + 3] };
+      }
+
+      function writePixel(x, y, r, g, b, a) {
+        const i = pixelIndex(x, y);
+        const d = lastQuantized.data;
+        d[i] = r;
+        d[i + 1] = g;
+        d[i + 2] = b;
+        d[i + 3] = a;
+      }
+
+      function samePixel(p, r, g, b, a) {
+        if (p.a < 16 && a < 16) return true;
+        if (p.a < 16 || a < 16) return false;
+        return p.r === r && p.g === g && p.b === b;
+      }
+
+      function brushRgba() {
+        if (isEraseTool(editTool) || !brushColor) return { r: 0, g: 0, b: 0, a: 0 };
+        const rgb = brushColor.rgb || FGPalettes.hexToRgb(brushColor.hex);
+        return { r: rgb[0], g: rgb[1], b: rgb[2], a: 255 };
+      }
+
+      function writePixelTracked(x, y, r, g, b, a) {
+        writePixel(x, y, r, g, b, a);
+        if (a < 16) markEraseCell(x, y, true);
+        else markEraseCell(x, y, false);
+      }
+
+      function stampBrushAt(cx, cy, r, g, b, a) {
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        const R = editTool === "eraser" ? eraseBrushRadius() : 0;
+        let changed = false;
+        for (let dy = -R; dy <= R; dy++) {
+          for (let dx = -R; dx <= R; dx++) {
+            if (R > 0 && dx * dx + dy * dy > R * R + 0.25) continue;
+            const x = cx + dx;
+            const y = cy + dy;
+            if (x < 0 || y < 0 || x >= w || y >= h) continue;
+            const cur = readPixel(x, y);
+            if (samePixel(cur, r, g, b, a)) continue;
+            writePixelTracked(x, y, r, g, b, a);
+            changed = true;
+          }
+        }
+        return changed;
+      }
+
+      function floodFill(sx, sy, tr, tg, tb, ta) {
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        const start = readPixel(sx, sy);
+        if (samePixel(start, tr, tg, tb, ta)) return false;
+        const stack = [[sx, sy]];
+        const seen = new Uint8Array(w * h);
+        let changed = false;
+        while (stack.length) {
+          const [x, y] = stack.pop();
+          if (x < 0 || y < 0 || x >= w || y >= h) continue;
+          const key = y * w + x;
+          if (seen[key]) continue;
+          seen[key] = 1;
+          const p = readPixel(x, y);
+          if (!samePixel(p, start.r, start.g, start.b, start.a)) continue;
+          writePixelTracked(x, y, tr, tg, tb, ta);
+          changed = true;
+          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+        }
+        return changed;
+      }
+
+      function replaceColorAt(sx, sy, tr, tg, tb, ta) {
+        const start = readPixel(sx, sy);
+        if (samePixel(start, tr, tg, tb, ta)) return false;
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        let changed = false;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const p = readPixel(x, y);
+            if (!samePixel(p, start.r, start.g, start.b, start.a)) continue;
+            writePixelTracked(x, y, tr, tg, tb, ta);
+            changed = true;
+          }
+        }
+        return changed;
+      }
+
+      function cellFromEvent(e) {
+        if (!lastQuantized) return null;
+        const pt = e.touches && e.touches[0] ? e.touches[0] : e;
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        let x = Math.floor(((pt.clientX - rect.left) / rect.width) * lastQuantized.width);
+        const y = Math.floor(((pt.clientY - rect.top) / rect.height) * lastQuantized.height);
+        if (x < 0 || y < 0 || x >= lastQuantized.width || y >= lastQuantized.height) return null;
+        // Display is mirrored; map click back to source grid for edit / craft
+        if (mirrorH) x = lastQuantized.width - 1 - x;
+        return { x, y };
+      }
+
+      function applyEditAt(x, y, opts) {
+        opts = opts || {};
+        const stroke = !!opts.stroke;
+        if (!lastQuantized) return;
+        if (!isEraseTool(editTool) && !brushColor) return;
+        const { r, g, b, a } = brushRgba();
+
+        if (editTool === "paint" || editTool === "eraser") {
+          if (!stroke || !editStrokeDirty) {
+            pushUndo();
+            editStrokeDirty = true;
+          }
+          if (!stampBrushAt(x, y, r, g, b, a)) {
+            if (!stroke) {
+              undoStack.pop();
+              if (btnEditUndo) btnEditUndo.disabled = undoStack.length === 0;
+              editStrokeDirty = false;
+            }
+            return;
+          }
+          refreshFromQuantized();
+          return;
+        }
+
+        if (editTool === "bucket" || editTool === "erase-fill") {
+          if (stroke) return;
+          pushUndo();
+          if (!floodFill(x, y, r, g, b, a)) {
+            undoStack.pop();
+            if (btnEditUndo) btnEditUndo.disabled = undoStack.length === 0;
+            return;
+          }
+          FGTool.track("perler", editTool === "erase-fill" ? "erase_fill" : "edit_bucket");
+          refreshFromQuantized();
+          return;
+        }
+
+        if (editTool === "replace") {
+          if (stroke) return;
+          pushUndo();
+          if (!replaceColorAt(x, y, r, g, b, a)) {
+            undoStack.pop();
+            if (btnEditUndo) btnEditUndo.disabled = undoStack.length === 0;
+            return;
+          }
+          FGTool.track("perler", "edit_replace");
+          refreshFromQuantized();
+        }
+      }
+
+      function undoEdit() {
+        if (!undoStack.length || !lastQuantized) return;
+        const snap = undoStack.pop();
+        if (snap && snap.img) {
+          lastQuantized = snap.img;
+          eraseMask = snap.mask ? new Uint8Array(snap.mask) : null;
+        } else {
+          /* legacy flat ImageData entries */
+          lastQuantized = snap;
+        }
+        if (btnEditUndo) btnEditUndo.disabled = undoStack.length === 0;
+        FGTool.track("perler", "edit_undo");
+        refreshFromQuantized();
+      }
+
+      /** Same as weapp「散色合并」: remap rare RGB colors onto nearer keepers. */
+      function mergeSparseEdit() {
+        if (!lastQuantized || !FGImage.mergeSparseColors) return;
+        let thr = sparseThrEl ? +sparseThrEl.value : 5;
+        if (!Number.isFinite(thr)) thr = 5;
+        thr = Math.max(1, Math.min(20, Math.round(thr)));
+        if (sparseThrEl) sparseThrEl.value = String(thr);
+        pushUndo();
+        const result = FGImage.mergeSparseColors(lastQuantized, thr);
+        if (!result.cells) {
+          undoStack.pop();
+          if (btnEditUndo) btnEditUndo.disabled = undoStack.length === 0;
+          if (tip) {
+            tip.removeAttribute("data-i18n");
+            tip.textContent = t("perler.sparse.none").replace("{t}", String(thr));
+          }
+          return;
+        }
+        lastQuantized = result.imageData;
+        if (lastQuantizedBase) {
+          const baseMerged = FGImage.mergeSparseColors(lastQuantizedBase, thr);
+          if (baseMerged.cells) lastQuantizedBase = baseMerged.imageData;
+        }
+        FGTool.track("perler", "sparse_merge", { thr: thr, n: result.mergedColors, c: result.cells });
+        if (tip) {
+          tip.removeAttribute("data-i18n");
+          tip.textContent = t("perler.sparse.done")
+            .replace("{n}", String(result.mergedColors))
+            .replace("{c}", String(result.cells));
+        }
+        refreshFromQuantized();
+      }
+
+      function render() {
+        if (!sourceImg) return;
+        const side = Math.max(32, Math.min(144, +sideEl.value || 96));
+        sideEl.value = String(side);
+        sideHint.textContent = String(side);
+        lastSide = side;
+        const contrast = (+contrastEl.value || 100) / 100;
+        const sat = (+satEl.value || 100) / 100;
+        contrastVal.textContent = contrast.toFixed(2);
+        satVal.textContent = sat.toFixed(2);
+
+        const dither = ditherEl.value;
+        /*
+         * Cartoon / flat art: detect on nearest-neighbor probe BEFORE smooth resize.
+         * Smooth shrink invents AA mud → nearest bead jumps (even with dither off).
+         */
+        let isFlatArt = false;
+        if (!fromTemplate && FGBeadFsV2 && FGBeadFsV2.detectFlatArt) {
+          try {
+            const probe = FGImage.fitImageToSquare(sourceImg, 96, fitEl.value, {
+              smooth: false,
+            });
+            isFlatArt = FGBeadFsV2.detectFlatArt(
+              probe.data.data,
+              probe.data.width,
+              probe.data.height,
+              16
+            );
+          } catch (_) {
+            isFlatArt = false;
+          }
+        }
+        let { data } = FGImage.fitImageToSquare(sourceImg, side, fitEl.value, {
+          smooth: !fromTemplate && !isFlatArt,
+        });
+        if (!fromTemplate && !isFlatArt && (contrast !== 1 || sat !== 1)) {
+          data = FGImage.adjustImageData(data, { contrast, saturation: sat });
+        }
+        const palette = resolvePalette(data);
+        /* Handlike / FS V2 are separate modules — never routed through FGImage.quantizeImageData. */
+        let quantized;
+        const budget = Math.max(0, Math.min(64, +nEl.value || 0));
+        const useCartoonV2 =
+          FGBeadFsV2 && dither !== "handlike" && (dither === "fs-v2" || isFlatArt);
+        if (useCartoonV2) {
+          const opts = { contentMode: "flat", snapEdges: true };
+          if (palEl.value === "auto" || budget > 0) {
+            opts.maxColors = Math.min(budget || 16, palette.colors.length);
+          }
+          quantized = FGBeadFsV2.quantizeImageData(data, palette.colors, opts);
+          FGTool.track("perler", dither === "fs-v2" ? "cartoon_v2" : "flat_art_pipeline");
+          if (tip) {
+            tip.setAttribute("data-i18n", "perler.tip.flatArt");
+            tip.textContent = t("perler.tip.flatArt");
+          }
+        } else if (dither === "handlike" && FGBeadHandlike) {
+          quantized = FGBeadHandlike.quantizeImageData(data, palette.colors, {
+            maxColors: Math.min(Math.max(2, budget || 24), palette.colors.length),
+          });
+        } else {
+          quantized = FGImage.quantizeImageData(data, palette.colors, {
+            dither: dither === "none" ? "none" : dither,
+            ditherStrength: dither === "fs" ? 0.85 : 1,
+          });
+        }
+        if (!isFlatArt && dither !== "fs-v2" && tip) {
+          tip.setAttribute("data-i18n", tipKey);
+          tip.textContent = t(tipKey);
+        }
+        lastQuantizedBase = quantized;
+        lastPalette = palette;
+        craftRow = 0;
+        clearEraseMask();
+        const editPal = getEditPalette();
+        brushColor = (editPal && editPal.colors[0]) || null;
+        applyRmBgFromBase();
+      }
+
+      /** Pattern data for file export (ignore craft dimming). */
+      function exportPatternData() {
+        if (!lastQuantized) return null;
+        if (mirrorH && FGImage.mirrorImageDataH) {
+          return FGImage.mirrorImageDataH(lastQuantized);
+        }
+        return lastQuantized;
+      }
+
+      function codesExportCellFor(cols, rows) {
+        let cell = CODES_EXPORT_CELL;
+        if (cols * cell > CODES_EXPORT_MAX_EDGE) {
+          cell = Math.max(16, Math.floor(CODES_EXPORT_MAX_EDGE / cols));
+        }
+        if (rows * cell > CODES_EXPORT_MAX_EDGE) {
+          cell = Math.max(16, Math.floor(CODES_EXPORT_MAX_EDGE / rows));
+        }
+        return cell;
+      }
+
+      /** Parse 0–100; treat empty/NaN as 50, keep real 0. */
+      function clampGridInk(ink) {
+        const n = ink == null || ink === "" ? NaN : +ink;
+        if (!Number.isFinite(n)) return 50;
+        return Math.max(0, Math.min(100, n));
+      }
+
+      /** gridInk 0–100 → stroke alpha (50 ≈ prior default ~0.18). */
+      function exportGridColors(ink) {
+        const t = clampGridInk(ink) / 100;
+        const minorA =
+          t <= 0.5 ? 0.04 + t * 0.28 : 0.18 + (t - 0.5) * 0.82;
+        const majorA =
+          t <= 0.5 ? 0.16 + t * 0.78 : 0.55 + (t - 0.5) * 0.8;
+        return {
+          minorColor: "rgba(0,0,0," + minorA.toFixed(3) + ")",
+          majorColor: "rgba(0,0,0," + majorA.toFixed(3) + ")",
+        };
+      }
+
+      /**
+       * Render pattern-only canvas (no color table).
+       * cellCodes: overlay codes on cells; hiRes: fixed large cell;
+       * withGrid: force flat cells + grid lines (not bead circles).
+       */
+      function renderExportCanvas(opts) {
+        const o = opts || {};
+        const data = exportPatternData();
+        if (!data || !lastPalette) return null;
+        const cols = data.width;
+        const rows = data.height;
+        const hiRes = !!o.hiRes || !!o.cellCodes;
+        let cell = hiRes
+          ? codesExportCellFor(cols, rows)
+          : Math.max(4, Math.min(20, +cellEl.value || 8));
+        const withGrid = !!o.withGrid;
+        const beads = !withGrid && viewEl.value === "beads";
+        const off = document.createElement("canvas");
+        if (withGrid && FGImage.drawPrintCellGrid) {
+          const ink = exportGridColors(o.gridInk);
+          FGImage.drawPrintCellGrid(off, data, cell, {
+            bg: "#ffffff",
+            majorEvery: 0,
+            minorColor: ink.minorColor,
+            majorColor: ink.majorColor,
+          });
+        } else if (beads) {
+          FGImage.drawBeadGrid(off, data, cell, 1);
+        } else {
+          FGImage.drawImageData(off, data, cell);
+          if (gridEl && gridEl.checked) {
+            FGImage.drawGridOverlay(off, cols, rows, cell);
+          }
+        }
+        if (o.cellCodes && FGImage.drawCellCodeOverlay) {
+          FGImage.drawCellCodeOverlay(off, data, cell, {
+            beads: beads,
+            gap: beads ? 1 : 0,
+            paletteColors: lastPalette.colors,
+            labelFn: cellCodeLabel,
+            sharp: true,
+          });
+        }
+        return off;
+      }
+
+      function exportSubtitle(data) {
+        let total = 0;
+        if (lastCounts) Object.values(lastCounts).forEach((n) => (total += n));
+        return (
+          `${data.width}×${data.height}` +
+          (total ? ` · ${total} ${t("perler.stat.beads")}` : "") +
+          (lastCounts ? ` · ${Object.keys(lastCounts).length} ${t("perler.stat.colors")}` : "") +
+          (lastPalette ? ` · ${FGPalettes.displayName(lastPalette.name)}` : "") +
+          (mirrorH ? " · " + t("perler.mirror.toggle") : "")
+        );
+      }
+
+      /** Pattern + optional color table (legend) below via composePrintSheet. */
+      function buildExportSheet(opts) {
+        const o = opts || {};
+        const data = exportPatternData();
+        if (!data || !lastPalette || !FGImage.composePrintSheet) return null;
+        const cellCodes = !!o.cellCodes;
+        const withGrid = !!o.withGrid;
+        const ink = withGrid ? exportGridColors(o.gridInk) : null;
+        const cell = cellCodes
+          ? Math.min(28, codesExportCellFor(data.width, data.height))
+          : Math.max(6, Math.min(14, +cellEl.value || 8));
+        return FGImage.composePrintSheet({
+          imageData: data,
+          palette: lastPalette,
+          counts: lastCounts || {},
+          cellCodes: cellCodes,
+          labelFn: cellCodeLabel,
+          printGrid: withGrid,
+          cell: cell,
+          alignMarks: false,
+          majorEvery: 0,
+          minorColor: ink && ink.minorColor,
+          majorColor: ink && ink.majorColor,
+          title: t("perler.printTitle"),
+          subtitle: exportSubtitle(data),
+          legendTitle: t("perler.printLegend"),
+          legendHeaders: [
+            t("perler.print.colColor"),
+            t("perler.print.colCode"),
+            t("perler.print.colCount"),
+          ],
+          footer: t("perler.printFooter"),
+          sheetMode: "both",
+        });
+      }
+
+      function exportPatternPng(opts) {
+        const o = opts || {};
+        if (!lastQuantized || !lastPalette) return;
+        const withLegend = !!o.withLegend;
+        const withGrid = !!o.withGrid;
+        const gridInk = o.gridInk;
+        FGTool.trackExport(
+          "perler",
+          "png" + (withLegend ? "_legend" : "") + (withGrid ? "_grid" : "")
+        );
+        const off = withLegend
+          ? buildExportSheet({
+              cellCodes: false,
+              withGrid: withGrid,
+              gridInk: gridInk,
+            })
+          : renderExportCanvas({
+              cellCodes: false,
+              hiRes: false,
+              withGrid: withGrid,
+              gridInk: gridInk,
+            });
+        if (!off) return;
+        FGImage.downloadCanvas(
+          off,
+          withLegend ? "perler-pattern-legend.png" : "perler-pattern.png"
+        );
+      }
+
+      function exportCodesPng(opts) {
+        const o = opts || {};
+        if (!lastQuantized || !lastPalette) return;
+        const withLegend = !!o.withLegend;
+        const withGrid = !!o.withGrid;
+        const gridInk = o.gridInk;
+        FGTool.trackExport(
+          "perler",
+          "png_codes" + (withLegend ? "_legend" : "") + (withGrid ? "_grid" : "")
+        );
+        const off = withLegend
+          ? buildExportSheet({
+              cellCodes: true,
+              withGrid: withGrid,
+              gridInk: gridInk,
+            })
+          : renderExportCanvas({
+              cellCodes: true,
+              hiRes: true,
+              withGrid: withGrid,
+              gridInk: gridInk,
+            });
+        if (!off) return;
+        FGImage.downloadCanvas(
+          off,
+          withLegend ? "perler-pattern-codes-legend.png" : "perler-pattern-codes.png"
+        );
+      }
+
+      function exportCsv() {
+        if (!lastCounts || !lastPalette) return;
+        FGTool.trackExport("perler", "csv");
+        const stockOn = isStockEnabled();
+        const owned = stockOn ? currentOwnedSet() : null;
+        const brand = lastPalette.brand || "";
+        const lines = stockOn
+          ? ["palette,brand,id,code,name,hex,count,in_stock,missing"]
+          : ["palette,brand,id,code,name,hex,count"];
+        lastPalette.colors.forEach((c) => {
+          const n = lastCounts[c.id] || 0;
+          if (!n) return;
+          const cn = FGPalettes.colorName(c).replace(/"/g, '""');
+          const code = (c.code || "").replace(/"/g, '""');
+          if (stockOn) {
+            const have = owned.has(c.id) ? "1" : "0";
+            const miss = owned.has(c.id) ? "0" : "1";
+            lines.push(
+              `${lastPalette.id},${brand},${c.id},"${code}","${cn}",${c.hex},${n},${have},${miss}`
+            );
+          } else {
+            lines.push(
+              `${lastPalette.id},${brand},${c.id},"${code}","${cn}",${c.hex},${n}`
+            );
+          }
+        });
+        FGImage.downloadText(lines.join("\n"), "perler-beads.csv", "text/csv");
+      }
+
+      function exportPrint() {
+        if (!lastQuantized || !lastPalette || !lastCounts) return;
+        /* Print sheets always include the color table; cell overlay is optional. */
+        const cellCodes = !!(printCellCodesEl && printCellCodesEl.checked);
+        FGTool.trackExport("perler", cellCodes ? "print_codes" : "print_png");
+        let total = 0;
+        Object.values(lastCounts).forEach((n) => (total += n));
+        const tileSize = printTileEl ? Math.max(0, +printTileEl.value || 0) : 0;
+        const major = !printMajorEl || printMajorEl.checked;
+        const pitch = printPitchEl ? Math.max(2.5, Math.min(10, +printPitchEl.value || 5)) : 5;
+        const mmW = (lastQuantized.width * pitch).toFixed(1);
+        const mmH = (lastQuantized.height * pitch).toFixed(1);
+        const printData =
+          mirrorH && FGImage.mirrorImageDataH
+            ? FGImage.mirrorImageDataH(lastQuantized)
+            : lastQuantized;
+        const subtitle =
+          `${lastQuantized.width}×${lastQuantized.height} · ${total} ${t("perler.stat.beads")} · ` +
+          `${Object.keys(lastCounts).length} ${t("perler.stat.colors")} · ` +
+          `${FGPalettes.displayName(lastPalette.name)}` +
+          (mirrorH ? " · " + t("perler.mirror.toggle") : "") +
+          " · " +
+          t("perler.print.pitchNote")
+            .replace("{mm}", String(pitch))
+            .replace("{w}", mmW)
+            .replace("{h}", mmH);
+        const legendHeaders = [
+          t("perler.print.colColor"),
+          t("perler.print.colCode"),
+          t("perler.print.colCount"),
+        ];
+        const pages = FGImage.composePrintBoardPages({
+          imageData: printData,
+          palette: lastPalette,
+          counts: lastCounts,
+          tileSize: tileSize,
+          cellCodes: cellCodes,
+          labelFn: cellCodeLabel,
+          printGrid: true,
+          majorEvery: major ? 10 : 0,
+          alignMarks: true,
+          pegPitchMm: pitch,
+          cell: cellCodes ? 24 : Math.max(6, Math.min(10, +cellEl.value || 8)),
+          title: t("perler.printTitle"),
+          subtitle: subtitle,
+          legendTitle: t("perler.printLegend"),
+          legendHeaders: legendHeaders,
+          footer:
+            t("perler.printFooter") +
+            " · " +
+            t(
+              pitchFamilyEl && pitchFamilyEl.value === "mini"
+                ? "perler.pitch.mini"
+                : "perler.pitch.midi"
+            ) +
+            (structMsg && !structPanel.hidden
+              ? " · " + (structMsg.textContent || "")
+              : ""),
+        });
+        FGTool.track(
+          "perler",
+          "print_pages_" + pages.length + "_tile_" + tileSize
+        );
+        FGImage.saveCanvases(
+          pages.map((sheet, i) => ({
+            canvas: sheet,
+            filename:
+              pages.length === 1
+                ? "perler-print-sheet.png"
+                : `perler-print-${i + 1}-of-${pages.length}.png`,
+          }))
+        );
+      }
+
+      /** Non-square sources: keep the whole image (contain) instead of center-crop cover. */
+      function preferFullFrameFit() {
+        if (!sourceImg || !fitEl || activeTplId) return;
+        const sw = sourceImg.naturalWidth || sourceImg.width || 1;
+        const sh = sourceImg.naturalHeight || sourceImg.height || 1;
+        const ratio = sw / sh;
+        if (ratio >= 0.9 && ratio <= 1.12) return;
+        if (fitEl.value !== "cover") return;
+        fitEl.value = "contain";
+        if (presetEl && presetEl.value !== "custom") {
+          applyingPreset = true;
+          presetEl.value = "custom";
+          applyingPreset = false;
+        }
+      }
+
+      function onImageReady() {
+        preferFullFrameFit();
+        render();
+        try {
+          previewStage.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (_) { /* ignore */ }
+      }
+
+      function tplName(tpl) {
+        if (!tpl) return "";
+        return t(tpl.nameKey || "perler.tpl." + tpl.id);
+      }
+
+      function paintTplThumbs() {
+        if (!FGPerlerTemplates || !tplGrid) return;
+        const list = FGPerlerTemplates.list("all");
+        tplGrid.innerHTML = "";
+        list.forEach((tpl) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "tpl__item tpl__item--photo" + (activeTplId === tpl.id ? " is-active" : "");
+          btn.setAttribute("data-tpl", tpl.id);
+          const thumb = document.createElement("img");
+          thumb.className = "tpl__thumb";
+          thumb.alt = "";
+          thumb.loading = "lazy";
+          thumb.src = FGPerlerTemplates.thumbSrc(tpl);
+          const label = document.createElement("span");
+          label.textContent = tplName(tpl);
+          btn.appendChild(thumb);
+          btn.appendChild(label);
+          btn.addEventListener("click", () => loadTemplate(tpl.id));
+          tplGrid.appendChild(btn);
+        });
+      }
+
+      function paintTplTabs() {
+        if (!tplTabs) return;
+        // Single photo template — no category tabs needed
+        tplTabs.hidden = true;
+        tplTabs.innerHTML = "";
+      }
+
+      async function loadTemplate(id) {
+        const tpl = FGPerlerTemplates && FGPerlerTemplates.get(id);
+        if (!tpl) return;
+        try {
+          sourceImg = await FGPerlerTemplates.toImage(tpl);
+          fromTemplate = false; // real photo: smooth downscale + photo preset
+          activeTplId = id;
+          activeTplCat = tpl.cat;
+          importBanner.hidden = true;
+          nameEl.value = tplName(tpl).slice(0, 40) || id;
+          applyPreset("photo");
+          tipKey = "perler.tip.template";
+          tip.setAttribute("data-i18n", tipKey);
+          tip.textContent = t(tipKey);
+          paintTplThumbs();
+          FGTool.track("perler", "template_" + id);
+          onImageReady();
+        } catch (e) {
+          stats.textContent = e.message || t("common.loadFail");
+        }
+      }
+
+      FGImage.setupDropzone(drop, async (file) => {
+        try {
+          sourceImg = await FGImage.loadImageFromFile(file);
+          fromTemplate = false;
+          activeTplId = null;
+          paintTplThumbs();
+          importBanner.hidden = true;
+          onImageReady();
+        } catch (e) {
+          stats.textContent = e.message || t("common.loadFail");
+          setExportEnabled(false);
+          beadSummary.hidden = true;
+        }
+      }, { wxTip: t("common.wxTip") });
+
+      presetEl.addEventListener("change", () => {
+        if (presetEl.value !== "custom") applyPreset(presetEl.value);
+        render();
+      });
+
+      // These regenerate quantization (clears edits / undo)
+      [sideEl, fitEl, palEl, nEl, ditherEl, contrastEl, satEl].forEach((el) => {
+        el.addEventListener("input", () => {
+          markCustom();
+          syncNField();
+          if (el === palEl) paintStockSwatches();
+          render();
+        });
+        el.addEventListener("change", () => {
+          markCustom();
+          syncNField();
+          if (el === palEl) paintStockSwatches();
+          render();
+        });
+      });
+      if (ditherEl && (ditherEl.value === "region" || ditherEl.value === "logo")) {
+        ditherEl.value = "fs";
+      }
+      if (presetEl && (presetEl.value === "illustration" || presetEl.value === "logo")) {
+        presetEl.value = "custom";
+      }
+
+      function persistStockUi() {
+        try {
+          localStorage.setItem(
+            "fg.beadStockUi.v1",
+            JSON.stringify({
+              enabled: !!(stockEnabledEl && stockEnabledEl.checked),
+              only: !!(stockOnlyEl && stockOnlyEl.checked),
+            })
+          );
+        } catch (_) { /* ignore */ }
+      }
+
+      function loadStockUi() {
+        try {
+          const u = JSON.parse(localStorage.getItem("fg.beadStockUi.v1") || "{}");
+          if (stockEnabledEl && typeof u.enabled === "boolean") stockEnabledEl.checked = u.enabled;
+          if (stockOnlyEl && typeof u.only === "boolean") stockOnlyEl.checked = u.only;
+        } catch (_) { /* ignore */ }
+      }
+
+      if (stockEnabledEl) {
+        stockEnabledEl.addEventListener("change", () => {
+          persistStockUi();
+          const side = document.getElementById("bead-side");
+          const scrollTop = side ? side.scrollTop : 0;
+          syncStockSwatchState();
+          if (isStockOnly() && sourceImg) render();
+          else if (lastCounts) {
+            updateStockMissing(lastCounts, lastPalette);
+            // Legend missing tags only — avoid full refreshFromQuantized scroll jank.
+            if (lastQuantized) refreshFromQuantized();
+          } else updateStockMissing(null, null);
+          if (side) side.scrollTop = scrollTop;
+          FGTool.track("perler", stockEnabledEl.checked ? "stock_on" : "stock_off");
+        });
+      }
+      if (stockOnlyEl) {
+        stockOnlyEl.addEventListener("change", () => {
+          persistStockUi();
+          if (sourceImg) render();
+          FGTool.track("perler", stockOnlyEl.checked ? "stock_only_on" : "stock_only_off");
+        });
+      }
+      if (btnStockAll) {
+        btnStockAll.addEventListener("click", () => {
+          const id = stockPaletteId();
+          if (!id) return;
+          const pal = FGPalettes.byId(id);
+          FGBeadStock.setOwnedIds(
+            id,
+            pal.colors.map((c) => c.id)
+          );
+          syncStockSwatchState();
+          if (lastCounts) updateStockMissing(lastCounts, lastPalette);
+        });
+      }
+      if (btnStockNone) {
+        btnStockNone.addEventListener("click", () => {
+          const id = stockPaletteId();
+          if (!id) return;
+          FGBeadStock.setOwnedIds(id, []);
+          syncStockSwatchState();
+          if (lastCounts) updateStockMissing(lastCounts, lastPalette);
+        });
+      }
+      // Preview-only: keep edited grid
+      [viewEl, cellEl, gridEl].forEach((el) => {
+        el.addEventListener("input", () => {
+          markCustom();
+          if (lastQuantized) refreshFromQuantized();
+          else render();
+        });
+        el.addEventListener("change", () => {
+          markCustom();
+          if (lastQuantized) refreshFromQuantized();
+          else render();
+        });
+      });
+
+      document.querySelectorAll(".edit-tool").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setEditTool(btn.getAttribute("data-edit"), { toggle: true });
+        });
+      });
+      if (btnEditUndo) btnEditUndo.addEventListener("click", undoEdit);
+      if (btnSparseMerge) btnSparseMerge.addEventListener("click", mergeSparseEdit);
+      if (sparseThrEl) {
+        sparseThrEl.addEventListener("change", () => {
+          let v = +sparseThrEl.value;
+          if (!Number.isFinite(v)) v = 5;
+          sparseThrEl.value = String(Math.max(1, Math.min(20, Math.round(v))));
+        });
+      }
+
+      function craftPointerClient(e) {
+        if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        if (e.changedTouches && e.changedTouches[0]) {
+          return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
+      }
+
+      function onViewPanStart(e) {
+        if (!panArmed || !lastQuantized) return false;
+        viewPanning = true;
+        syncViewportCursor();
+        const p = craftPointerClient(e);
+        viewPanLast = { x: p.x, y: p.y };
+        e.preventDefault();
+        return true;
+      }
+
+      function onViewPanMove(e) {
+        if (!viewPanning || !viewPanLast) return;
+        const p = craftPointerClient(e);
+        viewPanX += p.x - viewPanLast.x;
+        viewPanY += p.y - viewPanLast.y;
+        viewPanLast = { x: p.x, y: p.y };
+        applyViewTransform();
+        e.preventDefault();
+      }
+
+      function onViewPanEnd() {
+        viewPanning = false;
+        viewPanLast = null;
+        syncViewportCursor();
+      }
+
+      if (craftViewport) {
+        craftViewport.addEventListener("mousedown", (e) => {
+          if (onViewPanStart(e)) return;
+        });
+        craftViewport.addEventListener(
+          "touchstart",
+          (e) => {
+            if (onViewPanStart(e)) return;
+          },
+          { passive: false }
+        );
+        craftViewport.addEventListener(
+          "wheel",
+          (e) => {
+            if (!lastQuantized) return;
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+            setViewScale(viewScale * factor);
+          },
+          { passive: false }
+        );
+      }
+      window.addEventListener("mousemove", (e) => onViewPanMove(e));
+      window.addEventListener("mouseup", onViewPanEnd);
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          if (viewPanning) onViewPanMove(e);
+        },
+        { passive: false }
+      );
+      window.addEventListener("touchend", onViewPanEnd);
+
+      function tryCraftPinAt(e) {
+        if (!craftMode || panArmed || viewPanning) return false;
+        const cell = cellFromEventVisual(e);
+        if (!cell) {
+          if (craftAxisOn) clearCraftPin();
+          return craftAxisOn;
+        }
+        /* Click a bead: toggle placed progress + pin */
+        if (toggleCellPlaced(cell.x, cell.y)) {
+          syncCraftDoneIdsFromPlaced();
+          saveCraftProgressNow();
+        }
+        craftPin = { x: cell.x, y: cell.y };
+        craftStepFromNav = false;
+        rebuildCraftStepList();
+        const idx = craftStepList.findIndex(
+          (c) => c.x === cell.x && c.y === cell.y
+        );
+        craftStepIndex = idx;
+        if (!craftAxisOn) setCraftAxisOn(true);
+        else syncCraftAxisUi();
+        syncCraftStepUi();
+        paintLegend(lastCounts || {});
+        drawPatternCanvas();
+        FGTool.track("perler", "craft_place_toggle");
+        e.preventDefault();
+        return true;
+      }
+
+      canvas.addEventListener("mousedown", (e) => {
+        if (tryCraftPinAt(e)) return;
+        if (craftMode) return;
+        if (!canEditCanvas()) return;
+        const cell = cellFromEvent(e);
+        if (!cell) return;
+        editPainting = editTool === "paint" || editTool === "eraser";
+        editStrokeDirty = false;
+        applyEditAt(cell.x, cell.y, { stroke: editPainting });
+        e.preventDefault();
+      });
+      window.addEventListener("mouseup", () => {
+        editPainting = false;
+        editStrokeDirty = false;
+      });
+      canvas.addEventListener("mousemove", (e) => {
+        if (craftMode || !editPainting || !canEditCanvas()) return;
+        const cell = cellFromEvent(e);
+        if (!cell) return;
+        applyEditAt(cell.x, cell.y, { stroke: true });
+      });
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          if (tryCraftPinAt(e)) return;
+          if (craftMode) return;
+          if (!canEditCanvas()) return;
+          const cell = cellFromEvent(e);
+          if (!cell) return;
+          editPainting = editTool === "paint" || editTool === "eraser";
+          editStrokeDirty = false;
+          applyEditAt(cell.x, cell.y, { stroke: editPainting });
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+      canvas.addEventListener(
+        "touchmove",
+        (e) => {
+          if (craftMode || !editPainting || !canEditCanvas()) return;
+          const cell = cellFromEvent(e);
+          if (!cell) return;
+          applyEditAt(cell.x, cell.y, { stroke: true });
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+      canvas.addEventListener("touchend", () => {
+        editPainting = false;
+        editStrokeDirty = false;
+      });
+
+      if (btnCraft) {
+        btnCraft.addEventListener("click", () => setCraftMode(!craftMode));
+      }
+      if (btnCraftAxis) {
+        btnCraftAxis.addEventListener("click", () => {
+          setCraftAxisOn(!craftAxisOn);
+          FGTool.track("perler", craftAxisOn ? "craft_axis_on" : "craft_axis_off");
+        });
+      }
+      if (btnDraftToggle) {
+        btnDraftToggle.addEventListener("click", () => {
+          if (!lastQuantized) return;
+          const open = draftPanel && draftPanel.hidden;
+          setDraftPanelOpen(!!open);
+          if (open) paintDraftList();
+        });
+      }
+      if (btnDraftSave) {
+        btnDraftSave.addEventListener("click", () => saveDraft());
+      }
+      document.addEventListener("click", (e) => {
+        const wrap = document.getElementById("craft-draft-wrap");
+        if (!wrap || !draftPanel || draftPanel.hidden) return;
+        if (wrap.contains(e.target)) return;
+        setDraftPanelOpen(false);
+      });
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && craftPin) {
+          clearCraftPin();
+          return;
+        }
+        if (!craftMode || !lastQuantized) return;
+        const tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (e.key === "]" || e.key === "Period" || e.key === ".") {
+          e.preventDefault();
+          goCraftStep(1);
+        } else if (e.key === "[" || e.key === "Comma" || e.key === ",") {
+          e.preventDefault();
+          goCraftStep(-1);
+        }
+      });
+      if (typeof ResizeObserver !== "undefined" && craftViewport) {
+        const axisRo = new ResizeObserver(() => syncCraftAxisUi());
+        axisRo.observe(craftViewport);
+      }
+      document.querySelectorAll(".craft-mode").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setCraftGuide(btn.getAttribute("data-craft-mode") || "color");
+          FGTool.track("perler", "craft_mode_" + craftGuide);
+        });
+      });
+      if (btnCraftRowPrev) {
+        btnCraftRowPrev.addEventListener("click", () => {
+          craftRow = Math.max(0, craftRow - 1);
+          rebuildCraftStepList({ reset: true });
+          craftPin = null;
+          craftStepFromNav = false;
+          syncCraftRowLabel();
+          drawPatternCanvas();
+          syncCraftStepUi();
+        });
+      }
+      if (btnCraftRowNext) {
+        btnCraftRowNext.addEventListener("click", () => {
+          const h = lastQuantized ? lastQuantized.height : 1;
+          craftRow = Math.min(h - 1, craftRow + 1);
+          rebuildCraftStepList({ reset: true });
+          craftPin = null;
+          craftStepFromNav = false;
+          syncCraftRowLabel();
+          drawPatternCanvas();
+          syncCraftStepUi();
+        });
+      }
+      if (craftStepPrev) {
+        craftStepPrev.addEventListener("click", () => goCraftStep(-1));
+      }
+      if (craftStepNext) {
+        craftStepNext.addEventListener("click", () => goCraftStep(1));
+      }
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+          if (editPanel && !editPanel.hidden) {
+            e.preventDefault();
+            undoEdit();
+          }
+        }
+      });
+
+      if (btnRotate) {
+        btnRotate.addEventListener("click", () => {
+          if (!sourceImg || !FGImage.rotateImageCW90) return;
+          const next = FGImage.rotateImageCW90(sourceImg);
+          if (!next) return;
+          sourceImg = next;
+          FGTool.track("perler", "rotate90");
+          render();
+        });
+      }
+      function syncPitchFamilyUi() {
+        if (!pitchFamilyEl || !printPitchEl) return;
+        const fam = pitchFamilyEl.value === "mini" ? "mini" : "midi";
+        if (pitchWarnEl) pitchWarnEl.hidden = fam !== "mini";
+        const target = fam === "mini" ? 2.6 : 5;
+        const cur = +printPitchEl.value || 5;
+        // Only auto-set when still on the other family's default
+        if (fam === "mini" && (cur === 5 || cur > 3.5)) printPitchEl.value = "2.6";
+        if (fam === "midi" && (cur === 2.6 || cur < 3.5)) printPitchEl.value = "5";
+      }
+      if (pitchFamilyEl) {
+        pitchFamilyEl.addEventListener("change", () => {
+          syncPitchFamilyUi();
+          FGTool.track(
+            "perler",
+            "pitch_" + (pitchFamilyEl.value === "mini" ? "mini" : "midi")
+          );
+        });
+        syncPitchFamilyUi();
+      }
+
+      if (btnShowCodes) {
+        btnShowCodes.addEventListener("click", () => {
+          if (!lastQuantized) return;
+          showCellCodes = !showCellCodes;
+          if (showCellCodes) {
+            const base = Math.max(4, Math.min(20, +cellEl.value || 8));
+            const minZ = Math.min(4, 18 / base);
+            if (viewScale < minZ) viewScale = Math.round(minZ * 100) / 100;
+          }
+          syncPreviewToggles();
+          applyViewTransform();
+          drawPatternCanvas();
+          FGTool.track("perler", showCellCodes ? "codes_on" : "codes_off");
+        });
+      }
+      if (btnRmBg) {
+        btnRmBg.addEventListener("click", () => {
+          if (!lastQuantizedBase && !lastQuantized) return;
+          if (!lastQuantizedBase && lastQuantized) {
+            lastQuantizedBase = cloneImageData(lastQuantized);
+          }
+          rmBgOn = !rmBgOn;
+          applyRmBgFromBase();
+          FGTool.track("perler", rmBgOn ? "rmbg_on" : "rmbg_off");
+        });
+      }
+      if (btnErase) {
+        btnErase.addEventListener("click", () => {
+          if (!lastQuantized || craftMode) return;
+          setEditTool("eraser", { toggle: true });
+          FGTool.track("perler", editArmed && editTool === "eraser" ? "erase_on" : "erase_off");
+        });
+      }
+      if (btnEraseFill) {
+        btnEraseFill.addEventListener("click", () => {
+          if (!lastQuantized || craftMode) return;
+          setEditTool("erase-fill", { toggle: true });
+          FGTool.track(
+            "perler",
+            editArmed && editTool === "erase-fill" ? "erase_fill_on" : "erase_fill_off"
+          );
+        });
+      }
+      if (eraseBrushEl) {
+        eraseBrushEl.addEventListener("input", () => {
+          if (eraseBrushVal) eraseBrushVal.textContent = String(+eraseBrushEl.value || 1);
+        });
+      }
+      if (rmBgTolEl) {
+        rmBgTolEl.addEventListener("input", () => {
+          if (rmBgTolVal) rmBgTolVal.textContent = String(+rmBgTolEl.value || 36);
+        });
+        rmBgTolEl.addEventListener("change", () => {
+          if (!rmBgOn || !lastQuantizedBase) return;
+          applyRmBgFromBase();
+          FGTool.track("perler", "rmbg_tol_" + (+rmBgTolEl.value || 36));
+        });
+      }
+      if (btnMirror) {
+        btnMirror.addEventListener("click", () => {
+          if (!lastQuantized) return;
+          mirrorH = !mirrorH;
+          remapPlacedAfterMirrorFlip();
+          if (craftMode) {
+            rebuildCraftStepList({ reset: true });
+            craftPin = null;
+            craftStepFromNav = false;
+          }
+          if (craftProgressDirty) saveCraftProgressNow();
+          syncPreviewToggles();
+          drawPatternCanvas();
+          syncCraftStepUi();
+          paintLegend(lastCounts || {});
+          FGTool.track("perler", mirrorH ? "mirror_on" : "mirror_off");
+        });
+      }
+      if (btnPan) {
+        btnPan.addEventListener("click", () => {
+          if (!lastQuantized) return;
+          setPanArmed(!panArmed);
+          FGTool.track("perler", panArmed ? "pan_on" : "pan_off");
+        });
+      }
+      if (zoomSlider) {
+        zoomSlider.addEventListener("input", () => {
+          if (!lastQuantized) return;
+          setViewScale((+zoomSlider.value || 100) / 100);
+        });
+        zoomSlider.addEventListener("change", () => {
+          if (!lastQuantized) return;
+          FGTool.track("perler", "zoom_slider");
+        });
+      }
+      if (btnZoomReset) {
+        btnZoomReset.addEventListener("click", () => {
+          if (!lastQuantized) return;
+          restoreHomeView();
+          FGTool.track("perler", "zoom_reset");
+        });
+      }
+
+      const pickLegendEl = document.getElementById("export-pick-legend");
+      const pickGridEl = document.getElementById("export-pick-grid");
+      const pickInkEl = document.getElementById("export-pick-ink");
+      const pickInkWrap = document.getElementById("export-pick-ink-wrap");
+      const pickInkLabel = document.getElementById("export-pick-ink-label");
+      const pickInkPreview = document.getElementById("export-pick-ink-preview");
+      const pickOk = document.getElementById("export-pick-ok");
+      const pickCancel = document.getElementById("export-pick-cancel");
+
+      /** Tiny 4×2 swatch so slider changes are obvious. */
+      function paintExportInkPreview(ink) {
+        if (!pickInkPreview) return;
+        const cols = 4;
+        const rows = 2;
+        const cell = 42;
+        const w = cols * cell;
+        const h = rows * cell;
+        if (pickInkPreview.width !== w) pickInkPreview.width = w;
+        if (pickInkPreview.height !== h) pickInkPreview.height = h;
+        const ctx = pickInkPreview.getContext("2d");
+        const fills = ["#f4a6c1", "#ffe566", "#7ec8e3", "#b8e986", "#c9b1ff", "#ffb347", "#90e0c0", "#ff8fab"];
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            ctx.fillStyle = fills[y * cols + x];
+            ctx.fillRect(x * cell, y * cell, cell, cell);
+          }
+        }
+        const inkColors = exportGridColors(ink);
+        ctx.strokeStyle = inkColors.minorColor;
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= cols; x++) {
+          ctx.beginPath();
+          ctx.moveTo(x * cell + 0.5, 0);
+          ctx.lineTo(x * cell + 0.5, h);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= rows; y++) {
+          ctx.beginPath();
+          ctx.moveTo(0, y * cell + 0.5);
+          ctx.lineTo(w, y * cell + 0.5);
+          ctx.stroke();
+        }
+      }
+
+      function syncExportInkUi() {
+        const on = !!(pickGridEl && pickGridEl.checked);
+        if (pickInkWrap) pickInkWrap.hidden = !on;
+        if (!pickInkEl) return;
+        const v = clampGridInk(pickInkEl.value);
+        pickInkEl.value = String(v);
+        pickInkEl.setAttribute("aria-valuenow", String(v));
+        if (pickInkLabel) {
+          let key = "perler.export.gridInkMid";
+          if (v < 34) key = "perler.export.gridInkLight";
+          else if (v > 66) key = "perler.export.gridInkDark";
+          pickInkLabel.textContent = t(key);
+        }
+        if (on) paintExportInkPreview(v);
+      }
+
+      function openExportPick(kind) {
+        if (!lastQuantized || !exportPick) return;
+        if (kind !== "pattern" && kind !== "codes") return;
+        pendingExportKind = kind;
+        if (pickLegendEl) pickLegendEl.checked = true;
+        if (pickGridEl) pickGridEl.checked = true;
+        if (pickInkEl) pickInkEl.value = "50";
+        syncExportInkUi();
+        exportPick.hidden = false;
+      }
+      function closeExportPick() {
+        pendingExportKind = null;
+        if (exportPick) exportPick.hidden = true;
+      }
+      function finishExportPick() {
+        const kind = pendingExportKind;
+        const withLegend = !!(pickLegendEl && pickLegendEl.checked);
+        const withGrid = !!(pickGridEl && pickGridEl.checked);
+        const gridInk = clampGridInk(pickInkEl && pickInkEl.value);
+        closeExportPick();
+        const opts = {
+          withLegend: withLegend,
+          withGrid: withGrid,
+          gridInk: gridInk,
+        };
+        if (kind === "pattern") exportPatternPng(opts);
+        else if (kind === "codes") exportCodesPng(opts);
+      }
+      if (btnExport) btnExport.addEventListener("click", () => openExportPick("pattern"));
+      if (stickyPng) stickyPng.addEventListener("click", () => openExportPick("pattern"));
+      if (btnExportCodes) {
+        btnExportCodes.addEventListener("click", () => openExportPick("codes"));
+      }
+      if (stickyCodes) stickyCodes.addEventListener("click", () => openExportPick("codes"));
+      if (btnPrint) btnPrint.addEventListener("click", () => exportPrint());
+      if (stickyPrint) stickyPrint.addEventListener("click", () => exportPrint());
+      btnCsv.addEventListener("click", exportCsv);
+      if (pickOk) pickOk.addEventListener("click", finishExportPick);
+      if (pickCancel) pickCancel.addEventListener("click", closeExportPick);
+      if (pickGridEl) pickGridEl.addEventListener("change", syncExportInkUi);
+      if (pickInkEl) pickInkEl.addEventListener("input", syncExportInkUi);
+      if (exportPick) {
+        exportPick.addEventListener("click", (e) => {
+          if (e.target === exportPick) closeExportPick();
+        });
+      }
+
+      nameEl.addEventListener("change", () => {
+        if (lastLevel) lastLevel.name = nameEl.value.trim() || "Custom";
+      });
+      btnLevel.addEventListener("click", () => {
+        if (!lastGridCanvas) return;
+        const side = lastGridCanvas.width;
+        const result = FGBeadLevel.imageToLevel(lastGridCanvas, {
+          side,
+          chunk: 32,
+          name: nameEl.value.trim() || "Custom",
+          id: 99,
+        });
+        lastLevel = result.level;
+        FGTool.trackExport("perler", "level_json");
+        FGImage.downloadText(
+          JSON.stringify(lastLevel, null, 2),
+          "beadants-level.json",
+          "application/json"
+        );
+      });
+      if (btnCta9) {
+        btnCta9.addEventListener("click", () => {
+          FGTool.track("perler", "cta_switch_beadants9");
+          applyPreset("beadants");
+          showPaletteBanner("beadants9");
+          if (sourceImg) {
+            render();
+            try {
+              previewStage.scrollIntoView({ behavior: "smooth", block: "start" });
+            } catch (_) { /* ignore */ }
+          } else {
+            syncCta();
+          }
+        });
+      }
+      if (btnToPaint) {
+        btnToPaint.addEventListener("click", () => {
+          if (!lastQuantized || !lastPalette || !window.FGBeadStructure) return;
+          const g = FGBeadStructure.gridFromImageData(
+            lastQuantized,
+            lastPalette.colors
+          );
+          const ok = FGTool.goBeadGrid("perler", "perlerpaint", {
+            cols: g.cols,
+            rows: g.rows,
+            cells: g.cells,
+            paletteId: lastPalette.id,
+            shape: "rect",
+            pitchFamily:
+              pitchFamilyEl && pitchFamilyEl.value === "mini" ? "mini" : "midi",
+          });
+          if (!ok) FGTool.track("perler", "handoff_paint_fail");
+        });
+      }
+      btnPlay.addEventListener("click", (e) => {
+        const is9 = palEl.value === "beadants9";
+        FGTool.track("perler", is9 ? "play_cta" : "play_cta_remap");
+        if (!lastGridCanvas && !lastQuantized) return;
+        e.preventDefault();
+        const side = lastGridCanvas ? lastGridCanvas.width : lastSide;
+        const result = FGBeadLevel.imageToLevel(lastGridCanvas || canvas, {
+          side,
+          chunk: 32,
+          name: nameEl.value.trim() || "Custom",
+          id: 99,
+        });
+        lastLevel = result.level;
+        const hash = FGBeadLevel.encodeLevelHash(lastLevel);
+        const host = (location.hostname || "").toLowerCase();
+        const local =
+          host === "localhost" ||
+          host === "127.0.0.1" ||
+          host === "[::1]" ||
+          host.endsWith(".local");
+        const base = local
+          ? "http://127.0.0.1:8788/"
+          : "https://beadants.fastgames.cn/";
+        location.href = base + "#" + hash;
+      });
+      if (linkChart) {
+        linkChart.addEventListener("click", () => {
+          FGTool.track("perler", "open_chart");
+        });
+      }
+      function syncFaqLd() {
+        const el = document.getElementById("faq-ld");
+        if (!el) return;
+        const mainEntity = [];
+        for (let i = 1; i <= 14; i++) {
+          mainEntity.push({
+            "@type": "Question",
+            name: t("perler.faq.q" + i),
+            acceptedAnswer: { "@type": "Answer", text: t("perler.faq.a" + i) },
+          });
+        }
+        el.textContent = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity,
+        });
+      }
+
+      document.addEventListener("fg:lang", () => {
+        fillPalettes();
+        tip.textContent = t(tipKey);
+        const wx = drop.querySelector(".dropzone__wx-tip");
+        if (wx) wx.textContent = t("common.wxTip");
+        paintTplTabs();
+        paintTplThumbs();
+        paintStockSwatches();
+        syncCta();
+        syncCraftChrome();
+        syncDraftChrome();
+        paintDraftList();
+        syncFaqLd();
+        if (!paletteBanner.hidden && palEl.value) showPaletteBanner(palEl.value);
+        if (lastQuantized) refreshFromQuantized();
+        else if (sourceImg) render();
+        else updateStructureUi();
+        setEditTool(editTool);
+        if (window.FGCandySelect) FGCandySelect.enhanceAll(document);
+      });
+
+      syncFaqLd();
+      fillPalettes();
+      paintTplTabs();
+      paintTplThumbs();
+      loadStockUi();
+      paintStockSwatches();
+      syncDraftChrome();
+      paintDraftList();
+
+      let qPal = null;
+      let qTpl = null;
+      try {
+        const qs = new URLSearchParams(location.search);
+        qPal = qs.get("palette");
+        qTpl = qs.get("template");
+      } catch (_) { /* ignore */ }
+      if (!qTpl && location.hash === "#templates") {
+        try {
+          document.getElementById("tpl-panel").scrollIntoView({ block: "nearest" });
+        } catch (_) { /* ignore */ }
+      }
+      const knownPal = qPal && FGPalettes.PRESETS.some((p) => p.id === qPal);
+      if (qPal === "beadants9") {
+        applyPreset("beadants");
+        showPaletteBanner("beadants9");
+      } else if (knownPal) {
+        applyPreset("photo");
+        applyingPreset = true;
+        presetEl.value = "custom";
+        palEl.value = qPal;
+        applyingPreset = false;
+        syncNField();
+        showPaletteBanner(qPal);
+      } else {
+        applyPreset("photo");
+      }
+      syncNField();
+      syncCta();
+
+      (async () => {
+        if (qTpl && FGPerlerTemplates.get(qTpl)) {
+          await loadTemplate(qTpl);
+          return;
+        }
+        const gridH = FGTool.consumeBeadGrid("perler");
+        if (gridH && window.FGBeadStructure) {
+          try {
+            const known = FGPalettes.PRESETS.some((p) => p.id === gridH.paletteId);
+            const pal =
+              gridH.palette && gridH.palette.length
+                ? FGPalettes.fromExtracted(gridH.palette)
+                : known
+                  ? FGPalettes.byId(gridH.paletteId)
+                  : FGPalettes.byId("mard-221");
+            const imageData = FGBeadStructure.imageDataFromGrid(
+              gridH.cells,
+              gridH.cols,
+              gridH.rows,
+              pal.colors,
+              false
+            );
+            if (pitchFamilyEl) {
+              pitchFamilyEl.value =
+                gridH.pitchFamily === "mini" ? "mini" : "midi";
+              syncPitchFamilyUi();
+            }
+            importBanner.hidden = false;
+            importBanner.setAttribute("data-i18n", "handoff.gridImported");
+            importBanner.textContent = t("handoff.gridImported");
+            if (sideEl) {
+              sideEl.value = String(Math.max(imageData.width, imageData.height));
+              if (sideHint) sideHint.textContent = sideEl.value;
+            }
+            applyQuantizedHandoff(imageData, pal);
+            FGTool.track("perler", "import_grid");
+            return;
+          } catch (_) { /* fall through */ }
+        }
+        const h = FGTool.consumeFor("perler");
+        if (!h) return;
+        try {
+          sourceImg = await FGTool.dataURLToImage(h.dataURL);
+          fromTemplate = false;
+          activeTplId = null;
+          paintTplThumbs();
+          importBanner.hidden = false;
+          if (h.meta && h.meta.paletteId && h.meta.paletteId !== "auto") {
+            applyingPreset = true;
+            presetEl.value = "custom";
+            palEl.value = h.meta.paletteId;
+            applyingPreset = false;
+            syncNField();
+            showPaletteBanner(h.meta.paletteId);
+          }
+          onImageReady();
+        } catch (_) { /* ignore */ }
+      })();
+
+      window.addEventListener("pagehide", () => {
+        if (craftProgressDirty || craftPlaced.size) saveCraftProgressNow();
+      });
+      window.addEventListener("beforeunload", () => {
+        if (craftProgressDirty || craftPlaced.size) saveCraftProgressNow();
+      });
+    })();
+  </script>
+</body>
+</html>

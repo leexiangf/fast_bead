@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+node_modules/
+.wrangler/
+*.log
+.idea/
+.vscode/
+_patch-index.js
