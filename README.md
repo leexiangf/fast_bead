@@ -9,8 +9,6 @@ Upload a photo in the browser, map it to brand bead palettes, clean noise, follo
 - Live product mirror: [fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - Repository: [github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
 
-Inspired by the broader perler-tool ecosystem (e.g. [Zippland/perler-beads](https://github.com/Zippland/perler-beads), [Jett-Wu/Perler_Beads_Generator](https://github.com/Jett-Wu/Perler_Beads_Generator)) — this codebase is an independent implementation under **MIT**.
-
 ## Features
 
 - Multi-brand palettes (MARD / COCO / Manman / Panpan / Mixiaowo / Artkal / Perler / Hama / …)

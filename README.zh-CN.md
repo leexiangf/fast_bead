@@ -9,8 +9,6 @@
 - 在线演示：[fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - 本仓库：[github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
 
-同类工具生态可参考 [Zippland/perler-beads](https://github.com/Zippland/perler-beads)、[Jett-Wu/Perler_Beads_Generator](https://github.com/Jett-Wu/Perler_Beads_Generator) 等；本仓库为独立实现，采用 **MIT** 许可证。
-
 ## 功能
 
 - 多品牌色板（MARD / COCO / 漫漫 / 盼盼 / 咪小窝 / Artkal / Perler / Hama / …）
