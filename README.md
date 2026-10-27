@@ -1,5 +1,7 @@
 # Fast Bead
 
+**English** | [中文](./README.zh-CN.md)
+
 Open-source **photo → perler / fuse-bead pattern** generator.
 
 Upload a photo in the browser, map it to brand bead palettes, clean noise, follow-place while crafting, and export printable sheets. **No upload to a server** — processing stays on your device.
