@@ -66,11 +66,14 @@
             <div class="params-cell params-cell--left">
               <div class="field">
                 <label for="fit" data-i18n="perler.fit"></label>
-                <select id="fit">
-                  <option value="cover" selected data-i18n="perler.fit.cover"></option>
-                  <option value="contain" data-i18n="perler.fit.contain"></option>
-                  <option value="stretch" data-i18n="perler.fit.stretch"></option>
-                </select>
+                <div class="field__combo">
+                  <select id="fit">
+                    <option value="cover" selected data-i18n="perler.fit.cover"></option>
+                    <option value="contain" data-i18n="perler.fit.contain"></option>
+                    <option value="stretch" data-i18n="perler.fit.stretch"></option>
+                  </select>
+                  <button type="button" class="btn btn--ghost field__combo-btn" id="btn-crop" disabled data-i18n="perler.crop.open"></button>
+                </div>
               </div>
             </div>
             <div class="params-cell params-cell--right" id="slot-preset">
@@ -191,6 +194,28 @@
               </div>
             </div>
           </div>
+
+          <div class="params-pair">
+            <div class="params-cell params-cell--span">
+              <details class="edit-clean" id="edit-clean">
+                <summary data-i18n="perler.clean.title"></summary>
+                <div class="edit-clean__body">
+                  <label class="edit-clean__check">
+                    <input type="checkbox" id="clean-skip-white" />
+                    <span data-i18n="perler.clean.skipWhite"></span>
+                  </label>
+                  <label class="edit-clean__check">
+                    <input type="checkbox" id="clean-smooth" />
+                    <span data-i18n="perler.clean.smooth"></span>
+                  </label>
+                  <div class="actions__row">
+                    <button type="button" class="btn btn--ghost" id="btn-clean-islands" disabled data-i18n="perler.clean.clearIslands"></button>
+                  </div>
+                  <p class="notice" data-i18n="perler.clean.hint"></p>
+                </div>
+              </details>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -199,6 +224,7 @@
           <div class="craft-dock__preview-toggles" id="preview-toggles" role="group">
             <button type="button" class="btn btn--ghost" id="btn-show-codes" disabled data-i18n="perler.codes.toggle" aria-pressed="false"></button>
             <button type="button" class="btn btn--ghost" id="btn-rm-bg" disabled data-i18n="perler.rmBg.toggle" aria-pressed="false"></button>
+            <button type="button" class="btn btn--ghost" id="btn-cutout" disabled data-i18n="perler.cutout.toggle" aria-pressed="false"></button>
             <button type="button" class="btn btn--ghost" id="btn-erase" disabled data-i18n="perler.erase.toggle" aria-pressed="false"></button>
             <button type="button" class="btn btn--ghost" id="btn-erase-fill" disabled data-i18n="perler.erase.fill" aria-pressed="false"></button>
             <button type="button" class="btn btn--ghost" id="btn-mirror" disabled data-i18n="perler.mirror.toggle" aria-pressed="false"></button>
@@ -209,15 +235,35 @@
               <button type="button" class="btn btn--ghost" id="btn-zoom-reset" disabled data-i18n="perler.zoom.reset"></button>
             </span>
           </div>
-          <div class="craft-dock__tools" id="craft-dock" hidden>
+          <div class="cutout-dock" id="cutout-dock" hidden>
+            <p class="cutout-dock__hint" data-i18n="perler.cutout.hint"></p>
+            <div class="cutout-dock__row" role="group">
+              <button type="button" class="btn btn--ghost is-active" id="btn-cutout-keep" data-i18n="perler.cutout.keep" aria-pressed="true"></button>
+              <button type="button" class="btn btn--ghost" id="btn-cutout-erase" data-i18n="perler.cutout.erase" aria-pressed="false"></button>
+              <label class="cutout-dock__brush">
+                <span data-i18n="perler.cutout.brush"></span>
+                <input type="range" id="cutout-brush" min="1" max="8" step="1" value="3" />
+                <span id="cutout-brush-val">3</span>
+              </label>
+              <button type="button" class="btn btn--primary" id="btn-cutout-apply" data-i18n="perler.cutout.apply"></button>
+              <button type="button" class="btn btn--ghost" id="btn-cutout-cancel" data-i18n="perler.cutout.cancel"></button>
+            </div>
+          </div>
+            <div class="craft-dock__tools" id="craft-dock" hidden>
             <div class="craft-dock__modes" role="group">
               <button type="button" class="btn btn--ghost craft-mode is-active" data-craft-mode="color" data-i18n="perler.craft.byColor"></button>
               <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="row" data-i18n="perler.craft.byRow"></button>
+              <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="column" data-i18n="perler.craft.byCol"></button>
+              <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="zone" data-i18n="perler.craft.byZone"></button>
             </div>
             <div class="craft-dock__row" id="craft-row-ctrl" hidden>
-              <button type="button" class="btn btn--ghost" id="craft-row-prev" data-i18n="perler.craft.rowPrev"></button>
+              <button type="button" class="btn btn--ghost" id="craft-row-prev" data-i18n="perler.craft.rangePrev"></button>
               <span class="craft-dock__row-label" id="craft-row-label">1 / 1</span>
-              <button type="button" class="btn btn--ghost" id="craft-row-next" data-i18n="perler.craft.rowNext"></button>
+              <button type="button" class="btn btn--ghost" id="craft-row-next" data-i18n="perler.craft.rangeNext"></button>
+            </div>
+            <div class="craft-dock__mirrors" role="group" id="craft-mirror-ctrl" hidden>
+              <button type="button" class="btn btn--ghost" id="btn-craft-mirror-h" data-i18n="perler.craft.mirrorH" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost" id="btn-craft-mirror-v" data-i18n="perler.craft.mirrorV" aria-pressed="false"></button>
             </div>
             <div class="craft-step" id="craft-step" hidden>
               <span class="craft-step__tag" data-i18n="perler.craft.stepTag">逐颗</span>
@@ -270,6 +316,7 @@
           <div class="bead-summary__head">
             <div class="bead-summary__total" id="bead-total"></div>
             <p class="bead-summary__buy" id="bead-buy"></p>
+            <button type="button" class="btn btn--ghost btn--compact" id="btn-copy-usage" disabled data-i18n="perler.copyUsage"></button>
           </div>
           <ol class="bead-summary__list" id="bead-list"></ol>
         </div>
@@ -362,9 +409,13 @@
             </div>
             <p class="notice" id="level-hint" hidden></p>
             <div class="actions actions--stack" hidden>
-              <button type="button" id="btn-cta-9" hidden></button>
-              <a id="btn-play" href="#" hidden></a>
-              <button type="button" id="btn-level" hidden></button>
+              <div class="actions__row actions__row--single" id="cta-switch-row" hidden>
+                <button type="button" id="btn-cta-9" hidden></button>
+              </div>
+              <div class="actions__row" hidden>
+                <a id="btn-play" href="#" hidden></a>
+                <button type="button" id="btn-level" hidden></button>
+              </div>
             </div>
             <p class="notice" id="level-cards" hidden></p>
             <a id="link-chart" href="https://fastgames.cn/tools/bead-chart/" hidden></a>
@@ -421,6 +472,29 @@
       <p>Enable JavaScript to convert photos into perler bead patterns in your browser.</p>
     </section>
   </noscript>
+
+  <div id="crop-modal" class="crop-modal" hidden>
+    <div class="crop-modal__card" role="dialog" aria-modal="true" aria-labelledby="crop-modal-title">
+      <p class="crop-modal__title" id="crop-modal-title" data-i18n="perler.crop.title"></p>
+      <p class="crop-modal__hint" data-i18n="perler.crop.hint"></p>
+      <div class="crop-modal__shapes" role="group">
+        <button type="button" class="btn btn--ghost is-active" id="crop-shape-square" data-i18n="perler.crop.square" aria-pressed="true"></button>
+        <button type="button" class="btn btn--ghost" id="crop-shape-free" data-i18n="perler.crop.free" aria-pressed="false"></button>
+      </div>
+      <div class="crop-modal__stage" id="crop-stage">
+        <canvas id="crop-canvas" class="crop-modal__canvas"></canvas>
+        <div class="crop-modal__box" id="crop-box" hidden>
+          <span class="crop-modal__handle crop-modal__handle--br" data-crop-handle="br"></span>
+          <span class="crop-modal__handle crop-modal__handle--bl" data-crop-handle="bl"></span>
+        </div>
+      </div>
+      <div class="crop-modal__actions">
+        <button type="button" class="btn btn--primary" id="crop-apply" data-i18n="perler.crop.apply"></button>
+        <button type="button" class="btn btn--ghost" id="crop-clear" data-i18n="perler.crop.clear"></button>
+        <button type="button" class="btn btn--ghost" id="crop-cancel" data-i18n="common.cancel"></button>
+      </div>
+    </div>
+  </div>
 
   <div id="export-pick" class="export-pick" hidden>
     <div class="export-pick__card" role="dialog" aria-modal="true" aria-labelledby="export-pick-title">
@@ -583,6 +657,7 @@
   <script src="./js/palettes.js"></script>
   <script src="./js/bead-stock.js"></script>
   <script src="./js/bead-craft-progress.js"></script>
+  <script src="./js/bead-place-zones.js"></script>
   <script src="./js/bead-craft-drafts.js"></script>
   <script src="./js/bead-structure.js"></script>
   <script src="./js/image-utils.js"></script>
@@ -593,7 +668,7 @@
   <script src="./js/tool-stub.js"></script>
   <script>
     (function () {
-      const { FGPalettes, FGBeadStock, FGImage, FGBeadHandlike, FGBeadFsV2, FGi18n, FGTool, FGBeadLevel, FGPerlerTemplates } = window;
+      const { FGPalettes, FGBeadStock, FGImage, FGBeadHandlike, FGBeadFsV2, FGBeadStructure, FGi18n, FGTool, FGBeadLevel, FGPerlerTemplates } = window;
       const t = (k) => FGi18n.t(k);
       const drop = document.getElementById("drop");
       const btnRotate = document.getElementById("btn-rotate");
@@ -619,6 +694,9 @@
       const craftDockBar = document.getElementById("craft-dock-bar");
       const craftRowCtrl = document.getElementById("craft-row-ctrl");
       const craftRowLabel = document.getElementById("craft-row-label");
+      const craftMirrorCtrl = document.getElementById("craft-mirror-ctrl");
+      const btnCraftMirrorH = document.getElementById("btn-craft-mirror-h");
+      const btnCraftMirrorV = document.getElementById("btn-craft-mirror-v");
       const craftAxisX = document.getElementById("craft-axis-x");
       const craftAxisY = document.getElementById("craft-axis-y");
       const craftAxisCorner = document.getElementById("craft-axis-corner");
@@ -628,6 +706,28 @@
       const btnCraftAxis = document.getElementById("btn-craft-axis");
       const btnShowCodes = document.getElementById("btn-show-codes");
       const btnRmBg = document.getElementById("btn-rm-bg");
+      const btnCutout = document.getElementById("btn-cutout");
+      const cutoutDock = document.getElementById("cutout-dock");
+      const btnCutoutKeep = document.getElementById("btn-cutout-keep");
+      const btnCutoutErase = document.getElementById("btn-cutout-erase");
+      const cutoutBrushEl = document.getElementById("cutout-brush");
+      const cutoutBrushVal = document.getElementById("cutout-brush-val");
+      const btnCutoutApply = document.getElementById("btn-cutout-apply");
+      const btnCutoutCancel = document.getElementById("btn-cutout-cancel");
+      const btnCrop = document.getElementById("btn-crop");
+      const cropModal = document.getElementById("crop-modal");
+      const cropStage = document.getElementById("crop-stage");
+      const cropCanvas = document.getElementById("crop-canvas");
+      const cropBox = document.getElementById("crop-box");
+      const cropShapeSquare = document.getElementById("crop-shape-square");
+      const cropShapeFree = document.getElementById("crop-shape-free");
+      const cropApplyBtn = document.getElementById("crop-apply");
+      const cropClearBtn = document.getElementById("crop-clear");
+      const cropCancelBtn = document.getElementById("crop-cancel");
+      const cleanSkipWhiteEl = document.getElementById("clean-skip-white");
+      const cleanSmoothEl = document.getElementById("clean-smooth");
+      const btnCleanIslands = document.getElementById("btn-clean-islands");
+      const btnCopyUsage = document.getElementById("btn-copy-usage");
       const btnErase = document.getElementById("btn-erase");
       const btnEraseFill = document.getElementById("btn-erase-fill");
       const eraseBrushEl = document.getElementById("erase-brush");
@@ -724,6 +824,17 @@
       let rmBgOn = false;
       /** Manual erase bits (1 = force transparent). Survives Remove BG re-apply. */
       let eraseMask = null;
+      /** Source-pixel crop window for fitImageToSquare({ sourceRect }). */
+      let sourceCropRect = null;
+      let cropLockSquare = true;
+      let cropDraft = null;
+      let cropLayout = null;
+      let cropDrag = null;
+      let cutoutMode = false;
+      let cutoutMask = null;
+      let cutoutTool = "keep";
+      let cutoutPainting = false;
+      let lastUsageRows = null;
       let lastGridCanvas = null;
       let lastLevel = null;
       let lastSide = 96;
@@ -811,7 +922,7 @@
         syncEraseUi();
       }
       let craftMode = false;
-      let craftGuide = "color"; // color | row
+      let craftGuide = "color"; // color | row | column | zone
       let craftFocusId = null;
       let craftDoneIds = new Set();
       /** Visual-coord keys "x,y" for cells the user has placed. */
@@ -823,6 +934,13 @@
       let activeDraftTitle = "";
       let suppressDraftUnbind = false;
       let craftRow = 0;
+      let craftCol = 0;
+      let craftZoneSize = 5;
+      let craftFocusZone = { zr: 0, zc: 0 };
+      let craftZoneLayout = null;
+      /** Placement-assist mirrors (reading order / HUD); not the pattern flip button. */
+      let craftMirrorH = false;
+      let craftMirrorV = false;
       let craftAxisOn = true;
       /** Visual 0-based cell under pin, or null. */
       let craftPin = null;
@@ -848,12 +966,12 @@
       function syncRmBgUi() {
         const ready = !!lastQuantizedBase || !!lastQuantized;
         if (btnRmBg) {
-          btnRmBg.disabled = !ready;
+          btnRmBg.disabled = !ready || cutoutMode;
           btnRmBg.classList.toggle("is-active", rmBgOn);
           btnRmBg.setAttribute("aria-pressed", rmBgOn ? "true" : "false");
         }
         if (rmBgTolEl) {
-          rmBgTolEl.disabled = !rmBgOn;
+          rmBgTolEl.disabled = !rmBgOn || cutoutMode;
           if (rmBgTolVal) rmBgTolVal.textContent = String(+rmBgTolEl.value || 36);
         }
       }
@@ -878,17 +996,290 @@
         syncEraseUi();
       }
 
+      function exitCutoutMode(redraw) {
+        cutoutMode = false;
+        cutoutMask = null;
+        cutoutPainting = false;
+        syncCutoutUi();
+        if (redraw !== false) drawPatternCanvas();
+        syncPreviewToggles();
+      }
+
+      function enterCutoutMode() {
+        if (!lastQuantizedBase && !lastQuantized) return;
+        if (craftMode) setCraftMode(false);
+        if (editArmed) setEditArmed(false);
+        if (!lastQuantizedBase && lastQuantized) {
+          lastQuantizedBase = cloneImageData(lastQuantized);
+        }
+        cutoutMode = true;
+        cutoutTool = "keep";
+        cutoutMask = FGImage.initKeepMask
+          ? FGImage.initKeepMask(lastQuantizedBase)
+          : new Uint8Array(lastQuantizedBase.width * lastQuantizedBase.height);
+        syncCutoutUi();
+        syncPreviewToggles();
+        drawPatternCanvas();
+        FGTool.track("perler", "cutout_on");
+      }
+
+      function paintCutoutAt(x, y) {
+        if (!cutoutMode || !cutoutMask || !lastQuantizedBase) return;
+        const w = lastQuantizedBase.width;
+        const h = lastQuantizedBase.height;
+        const r = cutoutBrushEl ? Math.max(1, Math.min(8, +cutoutBrushEl.value || 3)) : 3;
+        const value = cutoutTool !== "erase";
+        if (FGImage.paintMaskDisk) {
+          FGImage.paintMaskDisk(cutoutMask, w, h, x, y, r, value);
+        } else {
+          const idx = y * w + x;
+          if (idx >= 0 && idx < cutoutMask.length) cutoutMask[idx] = value ? 1 : 0;
+        }
+        drawPatternCanvas();
+      }
+
+      function applyCutoutMask() {
+        if (!cutoutMode || !cutoutMask || !lastQuantizedBase) return;
+        lastQuantizedBase = FGImage.applyKeepMask
+          ? FGImage.applyKeepMask(lastQuantizedBase, cutoutMask)
+          : lastQuantizedBase;
+        clearEraseMask();
+        exitCutoutMode(false);
+        applyRmBgFromBase();
+        FGTool.track("perler", "cutout_apply");
+      }
+
+      function clampCropDraft(draft, sw, sh, square) {
+        let w = Math.max(8, Math.round(draft.w));
+        let h = Math.max(8, Math.round(draft.h));
+        if (square) {
+          const side = Math.min(w, h, sw, sh);
+          w = side;
+          h = side;
+        } else {
+          w = Math.min(w, sw);
+          h = Math.min(h, sh);
+        }
+        let x = Math.round(draft.x);
+        let y = Math.round(draft.y);
+        x = Math.max(0, Math.min(sw - w, x));
+        y = Math.max(0, Math.min(sh - h, y));
+        return { x, y, w, h };
+      }
+
+      function defaultCropDraft(sw, sh, square) {
+        if (square) {
+          const side = Math.min(sw, sh);
+          return {
+            x: Math.round((sw - side) / 2),
+            y: Math.round((sh - side) / 2),
+            w: side,
+            h: side,
+          };
+        }
+        return { x: 0, y: 0, w: sw, h: sh };
+      }
+
+      function layoutCropStage() {
+        if (!sourceImg || !cropStage || !cropCanvas) return null;
+        const sw = sourceImg.naturalWidth || sourceImg.width;
+        const sh = sourceImg.naturalHeight || sourceImg.height;
+        /* Must run while modal is visible — hidden stage rect is wrong / 0. */
+        const rect = cropStage.getBoundingClientRect();
+        const stageW = Math.max(1, rect.width || 360);
+        const stageH = Math.max(1, rect.height || stageW);
+        const scale = Math.min(stageW / sw, stageH / sh);
+        const imgW = sw * scale;
+        const imgH = sh * scale;
+        const imgL = (stageW - imgW) / 2;
+        const imgT = (stageH - imgH) / 2;
+        const cw = Math.max(1, Math.round(stageW));
+        const ch = Math.max(1, Math.round(stageH));
+        cropCanvas.width = cw;
+        cropCanvas.height = ch;
+        const ctx = cropCanvas.getContext("2d");
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = "#0d1218";
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.imageSmoothingEnabled = true;
+        /* Draw in CSS-pixel space mapped onto bitmap (cw×ch ≈ stageW×stageH). */
+        const sx = cw / stageW;
+        const sy = ch / stageH;
+        ctx.drawImage(
+          sourceImg,
+          imgL * sx,
+          imgT * sy,
+          imgW * sx,
+          imgH * sy
+        );
+        cropLayout = { sw, sh, scale, imgL, imgT, imgW, imgH, stageW, stageH };
+        return cropLayout;
+      }
+
+      function syncCropBoxDom() {
+        if (!cropBox || !cropLayout || !cropDraft) {
+          if (cropBox) cropBox.hidden = true;
+          return;
+        }
+        const { scale, imgL, imgT } = cropLayout;
+        cropBox.hidden = false;
+        cropBox.style.left = imgL + cropDraft.x * scale + "px";
+        cropBox.style.top = imgT + cropDraft.y * scale + "px";
+        cropBox.style.width = Math.max(1, cropDraft.w * scale) + "px";
+        cropBox.style.height = Math.max(1, cropDraft.h * scale) + "px";
+      }
+
+      function syncCropShapeButtons() {
+        if (cropShapeSquare) {
+          cropShapeSquare.classList.toggle("is-active", cropLockSquare);
+          cropShapeSquare.setAttribute("aria-pressed", cropLockSquare ? "true" : "false");
+        }
+        if (cropShapeFree) {
+          cropShapeFree.classList.toggle("is-active", !cropLockSquare);
+          cropShapeFree.setAttribute("aria-pressed", !cropLockSquare ? "true" : "false");
+        }
+      }
+
+      function refreshCropModalLayout(opts) {
+        const o = opts || {};
+        const lay = layoutCropStage();
+        if (!lay) return null;
+        if (o.resetDraft || !cropDraft) {
+          cropDraft = clampCropDraft(
+            o.draft ||
+              sourceCropRect ||
+              defaultCropDraft(lay.sw, lay.sh, cropLockSquare),
+            lay.sw,
+            lay.sh,
+            cropLockSquare
+          );
+        } else {
+          cropDraft = clampCropDraft(
+            cropDraft,
+            lay.sw,
+            lay.sh,
+            cropLockSquare
+          );
+        }
+        syncCropBoxDom();
+        return lay;
+      }
+
+      function openCropModal() {
+        if (!sourceImg || !cropModal) return;
+        cropLockSquare = true;
+        syncCropShapeButtons();
+        cropModal.hidden = false;
+        /* Wait for layout: hidden→shown rect is only valid after paint. */
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            refreshCropModalLayout({
+              resetDraft: true,
+              draft: sourceCropRect || null,
+            });
+          });
+        });
+        FGTool.track("perler", "crop_open");
+      }
+
+      function closeCropModal() {
+        if (cropModal) cropModal.hidden = true;
+        cropDrag = null;
+      }
+
+      function cropLocalXY(e) {
+        if (!cropStage) return null;
+        const pt = e.touches && e.touches[0] ? e.touches[0] : e;
+        const rect = cropStage.getBoundingClientRect();
+        return { x: pt.clientX - rect.left, y: pt.clientY - rect.top };
+      }
+
+      function beginCropDrag(e, handle) {
+        if (!cropDraft || !cropLayout) return;
+        const local = cropLocalXY(e);
+        if (!local) return;
+        cropDrag = {
+          mode: handle || "move",
+          x: local.x,
+          y: local.y,
+          ox: cropDraft.x,
+          oy: cropDraft.y,
+          ow: cropDraft.w,
+          oh: cropDraft.h,
+        };
+        e.preventDefault();
+      }
+
+      function moveCropDrag(e) {
+        if (!cropDrag || !cropDraft || !cropLayout) return;
+        const local = cropLocalXY(e);
+        if (!local) return;
+        const dx = (local.x - cropDrag.x) / cropLayout.scale;
+        const dy = (local.y - cropDrag.y) / cropLayout.scale;
+        let next;
+        if (cropDrag.mode === "br") {
+          if (cropLockSquare) {
+            const delta = Math.max(dx, dy);
+            next = {
+              x: cropDrag.ox,
+              y: cropDrag.oy,
+              w: cropDrag.ow + delta,
+              h: cropDrag.oh + delta,
+            };
+          } else {
+            next = {
+              x: cropDrag.ox,
+              y: cropDrag.oy,
+              w: cropDrag.ow + dx,
+              h: cropDrag.oh + dy,
+            };
+          }
+        } else if (cropDrag.mode === "bl") {
+          if (cropLockSquare) {
+            const delta = Math.max(-dx, dy);
+            const side = cropDrag.ow + delta;
+            next = {
+              x: cropDrag.ox + cropDrag.ow - side,
+              y: cropDrag.oy,
+              w: side,
+              h: side,
+            };
+          } else {
+            next = {
+              x: cropDrag.ox + dx,
+              y: cropDrag.oy,
+              w: cropDrag.ow - dx,
+              h: cropDrag.oh + dy,
+            };
+          }
+        } else {
+          next = {
+            x: cropDrag.ox + dx,
+            y: cropDrag.oy + dy,
+            w: cropDrag.ow,
+            h: cropDrag.oh,
+          };
+        }
+        cropDraft = clampCropDraft(next, cropLayout.sw, cropLayout.sh, cropLockSquare);
+        syncCropBoxDom();
+        e.preventDefault();
+      }
+
+      function endCropDrag() {
+        cropDrag = null;
+      }
+
       function syncEraseUi() {
         const ready = !!lastQuantized;
         const eraseOn = editArmed && editTool === "eraser";
         const fillOn = editArmed && editTool === "erase-fill";
         if (btnErase) {
-          btnErase.disabled = !ready || craftMode;
+          btnErase.disabled = !ready || craftMode || cutoutMode;
           btnErase.classList.toggle("is-active", eraseOn);
           btnErase.setAttribute("aria-pressed", eraseOn ? "true" : "false");
         }
         if (btnEraseFill) {
-          btnEraseFill.disabled = !ready || craftMode;
+          btnEraseFill.disabled = !ready || craftMode || cutoutMode;
           btnEraseFill.classList.toggle("is-active", fillOn);
           btnEraseFill.setAttribute("aria-pressed", fillOn ? "true" : "false");
         }
@@ -908,17 +1299,53 @@
         );
       }
 
+      function syncCutoutUi() {
+        const ready = !!lastQuantized || !!lastQuantizedBase;
+        if (btnCutout) {
+          btnCutout.disabled = !ready || craftMode;
+          btnCutout.classList.toggle("is-active", cutoutMode);
+          btnCutout.setAttribute("aria-pressed", cutoutMode ? "true" : "false");
+        }
+        if (cutoutDock) cutoutDock.hidden = !cutoutMode;
+        if (btnCutoutKeep) {
+          btnCutoutKeep.classList.toggle("is-active", cutoutTool === "keep");
+          btnCutoutKeep.setAttribute("aria-pressed", cutoutTool === "keep" ? "true" : "false");
+        }
+        if (btnCutoutErase) {
+          btnCutoutErase.classList.toggle("is-active", cutoutTool === "erase");
+          btnCutoutErase.setAttribute("aria-pressed", cutoutTool === "erase" ? "true" : "false");
+        }
+        if (cutoutBrushVal && cutoutBrushEl) {
+          cutoutBrushVal.textContent = String(+cutoutBrushEl.value || 3);
+        }
+      }
+
+      function syncCropUi() {
+        if (btnCrop) {
+          btnCrop.disabled = !sourceImg;
+          btnCrop.classList.toggle("is-active", !!sourceCropRect);
+          btnCrop.title = sourceCropRect ? t("perler.crop.active") : t("perler.crop.open");
+        }
+      }
+
+      function syncCleanUi() {
+        if (btnCleanIslands) btnCleanIslands.disabled = !lastQuantized || cutoutMode;
+      }
+
       function syncPreviewToggles() {
         const ready = !!lastQuantized;
         if (btnShowCodes) {
-          btnShowCodes.disabled = !ready;
+          btnShowCodes.disabled = !ready || cutoutMode;
           btnShowCodes.classList.toggle("is-active", showCellCodes);
           btnShowCodes.setAttribute("aria-pressed", showCellCodes ? "true" : "false");
         }
         syncRmBgUi();
         syncEraseUi();
+        syncCutoutUi();
+        syncCropUi();
+        syncCleanUi();
         if (btnMirror) {
-          btnMirror.disabled = !ready;
+          btnMirror.disabled = !ready || cutoutMode;
           btnMirror.classList.toggle("is-active", mirrorH);
           btnMirror.setAttribute("aria-pressed", mirrorH ? "true" : "false");
         }
@@ -1009,6 +1436,46 @@
         syncCraftStepUi();
       }
 
+      function ensureCraftZoneLayout() {
+        if (!lastQuantized || !window.FGBeadPlaceZones) {
+          craftZoneLayout = null;
+          return null;
+        }
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        if (
+          craftZoneLayout &&
+          craftZoneLayout.zoneSize === craftZoneSize &&
+          craftZoneLayout._w === w &&
+          craftZoneLayout._h === h
+        ) {
+          return craftZoneLayout;
+        }
+        craftZoneLayout = FGBeadPlaceZones.buildZoneLayout(w, h, craftZoneSize);
+        craftZoneLayout._w = w;
+        craftZoneLayout._h = h;
+        return craftZoneLayout;
+      }
+
+      function toCraftViewXY(x, y) {
+        if (!lastQuantized) return { x: x, y: y };
+        const w = lastQuantized.width;
+        const h = lastQuantized.height;
+        return {
+          x: craftMirrorH ? w - 1 - x : x,
+          y: craftMirrorV ? h - 1 - y : y,
+        };
+      }
+
+      function sortCraftStepsByView(list) {
+        return list.slice().sort((a, b) => {
+          const va = toCraftViewXY(a.x, a.y);
+          const vb = toCraftViewXY(b.x, b.y);
+          if (va.y !== vb.y) return va.y - vb.y;
+          return va.x - vb.x;
+        });
+      }
+
       function buildCraftStepList() {
         const list = [];
         if (!lastQuantized || !lastPalette) return list;
@@ -1021,11 +1488,36 @@
           if (!rgb) return;
           rgbToId[rgb[0] + "," + rgb[1] + "," + rgb[2]] = c.id;
         });
-        const rowMode = craftGuide === "row";
-        const focusId = rowMode ? null : craftFocusId;
-        for (let y = 0; y < h; y++) {
-          if (rowMode && y !== craftRow) continue;
-          for (let vx = 0; vx < w; vx++) {
+        const rangeGuide =
+          craftGuide === "row" ||
+          craftGuide === "column" ||
+          craftGuide === "zone";
+        const focusId = rangeGuide ? null : craftFocusId;
+        let x0 = 0;
+        let x1 = w - 1;
+        let y0 = 0;
+        let y1 = h - 1;
+        if (craftGuide === "row") {
+          y0 = y1 = craftRow;
+        } else if (craftGuide === "column") {
+          x0 = x1 = craftCol;
+        } else if (craftGuide === "zone") {
+          const layout = ensureCraftZoneLayout();
+          const z =
+            layout &&
+            FGBeadPlaceZones.getZone(
+              layout,
+              craftFocusZone.zr,
+              craftFocusZone.zc
+            );
+          if (!z) return list;
+          x0 = z.x0;
+          x1 = z.x1;
+          y0 = z.y0;
+          y1 = z.y1;
+        }
+        for (let y = y0; y <= y1; y++) {
+          for (let vx = x0; vx <= x1; vx++) {
             const sx = mirrorH ? w - 1 - vx : vx;
             const i = (y * w + sx) * 4;
             if (d[i + 3] < 16) continue;
@@ -1036,7 +1528,53 @@
             list.push({ x: vx, y: y, id: id });
           }
         }
-        return list;
+        return sortCraftStepsByView(list);
+      }
+
+      /** Advance row/col/zone when current range has no beads left. */
+      function promoteCraftRangeIfEmpty() {
+        if (!lastQuantized) return false;
+        if (craftGuide === "row") {
+          const h = lastQuantized.height;
+          const order = [];
+          for (let y = 0; y < h; y++) order.push(y);
+          if (craftMirrorV) order.reverse();
+          const idx = order.indexOf(craftRow);
+          for (let i = idx + 1; i < order.length; i++) {
+            craftRow = order[i];
+            if (buildCraftStepList().length) return true;
+          }
+          return false;
+        }
+        if (craftGuide === "column") {
+          const w = lastQuantized.width;
+          const order = [];
+          for (let x = 0; x < w; x++) order.push(x);
+          if (craftMirrorH) order.reverse();
+          const idx = order.indexOf(craftCol);
+          for (let i = idx + 1; i < order.length; i++) {
+            craftCol = order[i];
+            if (buildCraftStepList().length) return true;
+          }
+          return false;
+        }
+        if (craftGuide === "zone") {
+          const layout = ensureCraftZoneLayout();
+          const zones = (layout && layout.zones) || [];
+          if (!zones.length) return false;
+          const curKey = FGBeadPlaceZones.zoneKey(
+            craftFocusZone.zr,
+            craftFocusZone.zc
+          );
+          let start = zones.findIndex((z) => z.key === curKey);
+          if (start < 0) start = -1;
+          for (let i = start + 1; i < zones.length; i++) {
+            craftFocusZone = { zr: zones[i].zr, zc: zones[i].zc };
+            if (buildCraftStepList().length) return true;
+          }
+          return false;
+        }
+        return false;
       }
 
       function rebuildCraftStepList(opts) {
@@ -1185,6 +1723,11 @@
           guide: craftGuide,
           focusId: craftFocusId,
           row: craftRow,
+          col: craftCol,
+          zoneSize: craftZoneSize,
+          focusZone: craftFocusZone,
+          craftMirrorH: craftMirrorH,
+          craftMirrorV: craftMirrorV,
         });
         craftProgressDirty = false;
         if (activeDraftId) touchActiveDraftMeta();
@@ -1472,9 +2015,31 @@
         saved.placed.forEach((k) => {
           if (typeof k === "string" && k.indexOf(",") > 0) craftPlaced.add(k);
         });
-        if (saved.guide === "row" || saved.guide === "color") craftGuide = saved.guide;
+        if (window.FGBeadCraftProgress && FGBeadCraftProgress.normalizeGuide) {
+          craftGuide = FGBeadCraftProgress.normalizeGuide(saved.guide);
+        } else if (
+          saved.guide === "row" ||
+          saved.guide === "color" ||
+          saved.guide === "column" ||
+          saved.guide === "zone"
+        ) {
+          craftGuide = saved.guide;
+        }
         if (saved.focusId != null) craftFocusId = saved.focusId;
         if (Number.isFinite(+saved.row)) craftRow = Math.max(0, +saved.row | 0);
+        if (Number.isFinite(+saved.col)) craftCol = Math.max(0, +saved.col | 0);
+        if (Number.isFinite(+saved.zoneSize) && +saved.zoneSize > 0) {
+          craftZoneSize = Math.max(1, +saved.zoneSize | 0);
+        }
+        if (saved.focusZone && typeof saved.focusZone === "object") {
+          craftFocusZone = {
+            zr: Math.max(0, saved.focusZone.zr | 0),
+            zc: Math.max(0, saved.focusZone.zc | 0),
+          };
+        }
+        craftMirrorH = !!saved.craftMirrorH;
+        craftMirrorV = !!saved.craftMirrorV;
+        craftZoneLayout = null;
         syncCraftDoneIdsFromPlaced();
         return craftPlaced.size > 0;
       }
@@ -1561,6 +2126,10 @@
           }
         }
         rebuildCraftStepList();
+        if (!craftStepList.length && delta > 0 && promoteCraftRangeIfEmpty()) {
+          rebuildCraftStepList({ reset: true });
+          syncCraftRangeLabel();
+        }
         if (!craftStepList.length) {
           craftStepIndex = -1;
           craftPin = null;
@@ -1644,9 +2213,10 @@
         } else {
           const cell = craftStepList[craftStepIndex];
           if (craftStepCoord) {
+            const vv = toCraftViewXY(cell.x, cell.y);
             craftStepCoord.textContent = t("perler.craft.pinLabel")
-              .replace("{x}", String(cell.x + 1))
-              .replace("{y}", String(cell.y + 1));
+              .replace("{x}", String(vv.x + 1))
+              .replace("{y}", String(vv.y + 1));
           }
           if (craftStepMeta) {
             craftStepMeta.textContent =
@@ -1829,9 +2399,10 @@
               box.style.width = Math.max(8, layout.cellW) + "px";
               box.style.height = Math.max(8, layout.cellH) + "px";
             }
+            const vv = toCraftViewXY(craftPin.x, craftPin.y);
             craftPinLabel.textContent = t("perler.craft.pinLabel")
-              .replace("{x}", String(craftPin.x + 1))
-              .replace("{y}", String(craftPin.y + 1));
+              .replace("{x}", String(vv.x + 1))
+              .replace("{y}", String(vv.y + 1));
           }
         } else {
           hide(craftPinEl);
@@ -1929,10 +2500,25 @@
       }
 
       function hasColorFocus() {
-        return craftFocusId != null && !(craftMode && craftGuide === "row");
+        return (
+          craftFocusId != null &&
+          !(
+            craftMode &&
+            (craftGuide === "row" ||
+              craftGuide === "column" ||
+              craftGuide === "zone")
+          )
+        );
       }
 
       function displayPatternData() {
+        if (cutoutMode && cutoutMask && lastQuantizedBase && FGImage.previewKeepMask) {
+          let data = FGImage.previewKeepMask(lastQuantizedBase, cutoutMask);
+          if (mirrorH && FGImage.mirrorImageDataH) {
+            data = FGImage.mirrorImageDataH(data);
+          }
+          return data;
+        }
         const needOverlay =
           craftMode || hasColorFocus() || craftPlaced.size > 0;
         let data = needOverlay ? buildCraftImageData() : lastQuantized;
@@ -2098,7 +2684,7 @@
         const id = palId || palEl.value || "beadants9";
         const chartIds = FGPalettes.CHART_IDS || [];
         const chartId = chartIds.indexOf(id) >= 0 ? id : "mard-185";
-        let href = "https://fastgames.cn/tools/bead-chart/?palette=" + encodeURIComponent(chartId);
+        let href = "/tools/bead-chart/?palette=" + encodeURIComponent(chartId);
         try {
           const lang = new URLSearchParams(location.search).get("lang");
           if (lang) href += "&lang=" + encodeURIComponent(lang);
@@ -2114,9 +2700,6 @@
 
       function syncCta() {
         if (!ctaPlay) return;
-        /* OSS: Beadants / level CTA removed — keep shell hidden */
-        ctaPlay.hidden = true;
-        return;
         const ready = !!sourceImg || !!lastQuantized;
         ctaPlay.hidden = !ready;
         const is9 = palEl.value === "beadants9";
@@ -2228,8 +2811,10 @@
           if (b) b.disabled = !on;
         });
         sticky.hidden = !on;
-        if (handoffPaint) handoffPaint.hidden = true;
+        if (handoffPaint) handoffPaint.hidden = !on;
         if (btnRotate) btnRotate.disabled = !sourceImg;
+        if (btnCrop) btnCrop.disabled = !sourceImg;
+        if (btnCopyUsage) btnCopyUsage.disabled = !on || !lastUsageRows || !lastUsageRows.rows.length;
         if (btnCraft) {
           btnCraft.disabled = !on;
           if (!on && craftMode) setCraftMode(false);
@@ -2239,6 +2824,8 @@
           mirrorH = false;
           panArmed = false;
           lastViewFitKey = "";
+          lastUsageRows = null;
+          if (cutoutMode) exitCutoutMode(false);
           resetView();
         }
         syncPreviewToggles();
@@ -2506,6 +3093,12 @@
         return "perler.buy.ok";
       }
 
+      function formatUsagePct(n, total) {
+        const raw = total > 0 ? (n * 100) / total : 0;
+        if (raw >= 10 || raw === 0) return Math.round(raw) + "%";
+        return (Math.round(raw * 10) / 10).toFixed(1).replace(/\.0$/, "") + "%";
+      }
+
       function updateBeadSummary(counts, palette, gw, gh, total) {
         const w = Math.max(1, gw | 0);
         const h = Math.max(1, gh | 0);
@@ -2519,18 +3112,80 @@
           .map((c) => ({ c, n: counts[c.id] || 0 }))
           .filter((r) => r.n > 0)
           .sort((a, b) => b.n - a.n);
+        lastUsageRows = {
+          w,
+          h,
+          total,
+          paletteName: FGPalettes.displayName(palette.name),
+          rows,
+        };
+        if (btnCopyUsage) btnCopyUsage.disabled = !rows.length;
         const show = rows.slice(0, 14);
         beadList.innerHTML =
           show
-            .map(
-              (r) =>
+            .map((r) => {
+              const pct = formatUsagePct(r.n, total);
+              return (
                 `<li><span class="legend__chip" style="background:${r.c.hex}"></span>` +
-                `<span>${FGPalettes.legendLabel(r.c)}</span><strong>${r.n}</strong></li>`
-            )
+                `<span>${FGPalettes.legendLabel(r.c)}</span>` +
+                `<span class="bead-summary__pct">${pct}</span>` +
+                `<strong>${r.n}</strong></li>`
+              );
+            })
             .join("") +
           (rows.length > show.length
             ? `<li class="bead-summary__more">${t("perler.buy.more").replace("{n}", String(rows.length - show.length))}</li>`
             : "");
+      }
+
+      async function copyUsageText() {
+        if (!lastUsageRows || !lastUsageRows.rows.length) return;
+        const u = lastUsageRows;
+        const head =
+          u.w +
+          "×" +
+          u.h +
+          " · " +
+          (u.paletteName || "") +
+          " · " +
+          u.rows.length +
+          "色 · " +
+          u.total +
+          "颗";
+        const lines = [head, ""].concat(
+          u.rows.map((r) => {
+            const code = (r.c.code || "").trim();
+            const name = FGPalettes.colorName(r.c).trim();
+            const label =
+              name && code && name !== code
+                ? name + "（" + code + "）"
+                : name || code || String(r.c.id);
+            const pct = formatUsagePct(r.n, u.total).replace(/%$/, "");
+            return label + " · " + r.n + " 颗 · 占 " + pct + "%";
+          })
+        );
+        const text = lines.join("\n");
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+          if (tip) {
+            tip.textContent = t("perler.copied");
+          }
+          FGTool.track("perler", "copy_usage");
+        } catch (_) {
+          if (tip) tip.textContent = t("perler.copyFail");
+        }
       }
 
       function cloneImageData(img) {
@@ -2617,13 +3272,51 @@
         }
       }
 
-      function syncCraftRowLabel() {
+      function syncCraftRangeLabel() {
         if (!craftRowLabel || !lastQuantized) return;
+        const w = lastQuantized.width;
         const h = lastQuantized.height;
-        craftRow = Math.max(0, Math.min(h - 1, craftRow));
-        craftRowLabel.textContent = t("perler.craft.rowOf")
-          .replace("{n}", String(craftRow + 1))
-          .replace("{total}", String(h));
+        if (craftGuide === "row") {
+          craftRow = Math.max(0, Math.min(h - 1, craftRow));
+          craftRowLabel.textContent = t("perler.craft.rowOf")
+            .replace("{n}", String(craftRow + 1))
+            .replace("{total}", String(h));
+        } else if (craftGuide === "column") {
+          craftCol = Math.max(0, Math.min(w - 1, craftCol));
+          craftRowLabel.textContent = t("perler.craft.colOf")
+            .replace("{n}", String(craftCol + 1))
+            .replace("{total}", String(w));
+        } else if (craftGuide === "zone") {
+          const layout = ensureCraftZoneLayout();
+          const total = (layout && layout.zones && layout.zones.length) || 1;
+          const z =
+            layout &&
+            FGBeadPlaceZones.getZone(
+              layout,
+              craftFocusZone.zr,
+              craftFocusZone.zc
+            );
+          let idx = 1;
+          if (layout && layout.zones) {
+            const i = layout.zones.findIndex(
+              (zz) =>
+                zz.zr === craftFocusZone.zr && zz.zc === craftFocusZone.zc
+            );
+            if (i >= 0) idx = i + 1;
+          }
+          const rect =
+            z
+              ? t("perler.craft.zoneRect")
+                  .replace("{x0}", String(z.x0 + 1))
+                  .replace("{x1}", String(z.x1 + 1))
+                  .replace("{y0}", String(z.y0 + 1))
+                  .replace("{y1}", String(z.y1 + 1))
+              : "";
+          craftRowLabel.textContent =
+            t("perler.craft.zoneOf")
+              .replace("{n}", String(idx))
+              .replace("{total}", String(total)) + (rect ? " · " + rect : "");
+        }
       }
 
       function syncCraftChrome() {
@@ -2641,10 +3334,33 @@
           btnCraft.textContent = t(craftMode ? "perler.craft.toggleOn" : "perler.craft.toggle");
         }
         if (craftRowCtrl) {
-          const showRow = craftMode && craftGuide === "row";
-          craftRowCtrl.hidden = !showRow;
-          if (showRow) craftRowCtrl.removeAttribute("hidden");
+          const showRange =
+            craftMode &&
+            (craftGuide === "row" ||
+              craftGuide === "column" ||
+              craftGuide === "zone");
+          craftRowCtrl.hidden = !showRange;
+          if (showRange) craftRowCtrl.removeAttribute("hidden");
           else craftRowCtrl.setAttribute("hidden", "");
+        }
+        if (craftMirrorCtrl) {
+          craftMirrorCtrl.hidden = !craftMode;
+          if (craftMode) craftMirrorCtrl.removeAttribute("hidden");
+          else craftMirrorCtrl.setAttribute("hidden", "");
+        }
+        if (btnCraftMirrorH) {
+          btnCraftMirrorH.classList.toggle("is-active", craftMirrorH);
+          btnCraftMirrorH.setAttribute(
+            "aria-pressed",
+            craftMirrorH ? "true" : "false"
+          );
+        }
+        if (btnCraftMirrorV) {
+          btnCraftMirrorV.classList.toggle("is-active", craftMirrorV);
+          btnCraftMirrorV.setAttribute(
+            "aria-pressed",
+            craftMirrorV ? "true" : "false"
+          );
         }
         document.querySelectorAll(".craft-mode").forEach((b) => {
           b.classList.toggle("is-active", b.getAttribute("data-craft-mode") === craftGuide);
@@ -2655,7 +3371,7 @@
           btnCraftAxis.title = t("perler.craft.axisHint");
           btnCraftAxis.hidden = !craftMode;
         }
-        syncCraftRowLabel();
+        syncCraftRangeLabel();
         applyViewTransform();
         syncPreviewToggles();
         syncCraftAxisUi();
@@ -2665,6 +3381,7 @@
 
       function setCraftMode(on) {
         const want = !!on && !!lastQuantized;
+        if (want && cutoutMode) exitCutoutMode(false);
         if (craftMode && !want) {
           /* Leaving follow mode: persist cell progress for this pattern */
           saveCraftProgressNow();
@@ -2677,6 +3394,8 @@
           craftStepFromNav = false;
           craftStepIndex = -1;
           craftStepList = [];
+          /* Leave follow: drop legend color highlight (progress still saved above) */
+          craftFocusId = null;
           restoreHomeView();
         } else {
           syncCraftProgressToPattern();
@@ -2684,8 +3403,16 @@
             const first = lastPalette && lastPalette.colors.find((c) => (lastCounts[c.id] || 0) > 0);
             craftFocusId = first ? first.id : null;
           }
-          if (craftGuide === "row") craftFocusId = null;
+          if (
+            craftGuide === "row" ||
+            craftGuide === "column" ||
+            craftGuide === "zone"
+          ) {
+            craftFocusId = null;
+          }
           craftRow = Math.max(0, Math.min(craftRow, (lastQuantized.height || 1) - 1));
+          craftCol = Math.max(0, Math.min(craftCol, (lastQuantized.width || 1) - 1));
+          ensureCraftZoneLayout();
           craftPin = null;
           craftStepFromNav = false;
           rebuildCraftStepList({ reset: true });
@@ -2694,15 +3421,17 @@
         syncCraftChrome();
         syncEditPanel(!craftMode && !!lastQuantized);
         syncEraseUi();
+        syncCutoutUi();
         if (lastQuantized) drawPatternCanvas();
         paintLegend(lastCounts || {});
         syncCraftAxisUi();
         syncCraftStepUi();
       }
 
-      /** Switch by-color / by-row and drop the other mode's overlays. */
+      /** Switch craft guide mode and drop overlays that don't apply. */
       function setCraftGuide(mode) {
-        const next = mode === "row" ? "row" : "color";
+        const allowed = { color: 1, row: 1, column: 1, zone: 1 };
+        const next = allowed[mode] ? mode : "color";
         if (next === craftGuide) {
           syncCraftChrome();
           syncCraftStepUi();
@@ -2714,8 +3443,18 @@
         if (craftGuide === "row") {
           craftFocusId = null;
           craftRow = 0;
+        } else if (craftGuide === "column") {
+          craftFocusId = null;
+          craftCol = 0;
+        } else if (craftGuide === "zone") {
+          craftFocusId = null;
+          craftFocusZone = { zr: 0, zc: 0 };
+          craftZoneLayout = null;
+          ensureCraftZoneLayout();
+          if (!buildCraftStepList().length) promoteCraftRangeIfEmpty();
         } else {
           craftRow = 0;
+          craftCol = 0;
           if (craftFocusId == null) {
             const first =
               lastPalette &&
@@ -2743,8 +3482,31 @@
           rgbToId[rgb[0] + "," + rgb[1] + "," + rgb[2]] = c.id;
         });
         const rowMode = craftMode && craftGuide === "row";
-        /* Color focus: legend click or craft by-color; row mode shows every hue on the active row. */
-        const focusId = rowMode ? null : craftFocusId;
+        const colMode = craftMode && craftGuide === "column";
+        const zoneMode = craftMode && craftGuide === "zone";
+        const rangeMode = rowMode || colMode || zoneMode;
+        /* Color focus: legend / by-color; range modes show every hue in range. */
+        const focusId = rangeMode ? null : craftFocusId;
+        let zx0 = 0;
+        let zx1 = w - 1;
+        let zy0 = 0;
+        let zy1 = h - 1;
+        if (zoneMode) {
+          const layout = ensureCraftZoneLayout();
+          const z =
+            layout &&
+            FGBeadPlaceZones.getZone(
+              layout,
+              craftFocusZone.zr,
+              craftFocusZone.zc
+            );
+          if (z) {
+            zx0 = z.x0;
+            zx1 = z.x1;
+            zy0 = z.y0;
+            zy1 = z.y1;
+          }
+        }
         /* Dim non-focus in place (keep silhouette) — do not erase the board. */
         const fogR = 48;
         const fogG = 50;
@@ -2756,17 +3518,21 @@
             const id = rgbToId[d[i] + "," + d[i + 1] + "," + d[i + 2]];
             const vx = mirrorH ? w - 1 - x : x;
             const placed = isCellPlaced(vx, y);
-            const offRow = rowMode && y !== craftRow;
+            const offRange =
+              (rowMode && y !== craftRow) ||
+              (colMode && vx !== craftCol) ||
+              (zoneMode &&
+                (vx < zx0 || vx > zx1 || y < zy0 || y > zy1));
             const notFocus =
               focusId != null && (id == null || !colorIdEq(id, focusId));
-            if (!offRow && !notFocus && !placed) {
+            if (!offRange && !notFocus && !placed) {
               /* Focus (or all colors when no focus): keep true hue. */
               continue;
             }
-            if (notFocus || offRow) {
+            if (notFocus || offRange) {
               /* Keep hue, dim strongly so the full grid stays in place and readable. */
-              const keep = offRow ? 0.12 : 0.28;
-              const aMul = offRow ? 0.35 : 0.5;
+              const keep = offRange ? 0.12 : 0.28;
+              const aMul = offRange ? 0.35 : 0.5;
               d[i] = Math.round(d[i] * keep + fogR * (1 - keep));
               d[i + 1] = Math.round(d[i + 1] * keep + fogG * (1 - keep));
               d[i + 2] = Math.round(d[i + 2] * keep + fogB * (1 - keep));
@@ -2936,15 +3702,52 @@
           drawCraftFocusMarks(cell, beads);
         }
         drawPlacedOverlay(cell, beads);
-        // Row guide line (same row index; mirror only flips X)
-        if (craftMode && craftGuide === "row") {
+        // Range guide outline (row / column / zone)
+        if (
+          craftMode &&
+          (craftGuide === "row" ||
+            craftGuide === "column" ||
+            craftGuide === "zone")
+        ) {
           const ctx = canvas.getContext("2d");
           const step = beads ? cell + 1 : cell;
-          const y0 = craftRow * step;
+          const w = lastQuantized.width;
+          const h = lastQuantized.height;
+          let rx0 = 0;
+          let ry0 = 0;
+          let rw = w;
+          let rh = h;
+          if (craftGuide === "row") {
+            ry0 = craftRow;
+            rh = 1;
+          } else if (craftGuide === "column") {
+            rx0 = craftCol;
+            rw = 1;
+          } else {
+            const layout = ensureCraftZoneLayout();
+            const z =
+              layout &&
+              FGBeadPlaceZones.getZone(
+                layout,
+                craftFocusZone.zr,
+                craftFocusZone.zc
+              );
+            if (z) {
+              rx0 = z.x0;
+              ry0 = z.y0;
+              rw = z.x1 - z.x0 + 1;
+              rh = z.y1 - z.y0 + 1;
+            }
+          }
           ctx.save();
           ctx.strokeStyle = "rgba(232,160,84,0.95)";
           ctx.lineWidth = Math.max(2, Math.round(cell * 0.06));
-          ctx.strokeRect(0.5, y0 + 0.5, canvas.width - 1, step - 1);
+          ctx.strokeRect(
+            rx0 * step + 0.5,
+            ry0 * step + 0.5,
+            rw * step - 1,
+            rh * step - 1
+          );
           ctx.restore();
         }
         syncCraftAxisUi();
@@ -3005,9 +3808,15 @@
               lastPalette &&
               lastPalette.colors.find((c) => colorIdEq(c.id, raw));
             const id = matched ? matched.id : +raw;
-            if (craftMode && craftGuide === "row") {
+            if (
+              craftMode &&
+              (craftGuide === "row" ||
+                craftGuide === "column" ||
+                craftGuide === "zone")
+            ) {
               craftGuide = "color";
               craftRow = 0;
+              craftCol = 0;
               syncCraftChrome();
             }
             craftFocusId = colorIdEq(craftFocusId, id) ? null : id;
@@ -3332,18 +4141,55 @@
         refreshFromQuantized();
       }
 
+      function fitOpts(extra) {
+        const o = Object.assign({}, extra || {});
+        if (sourceCropRect && sourceCropRect.w > 0 && sourceCropRect.h > 0) {
+          o.sourceRect = sourceCropRect;
+        }
+        return o;
+      }
+
+      /** Grid cols×rows from side slider; follows crop aspect when框选 is on. */
+      function boardGridForSide(side) {
+        const n = Math.max(32, Math.min(144, side | 0 || 96));
+        if (
+          sourceCropRect &&
+          sourceCropRect.w > 0 &&
+          sourceCropRect.h > 0 &&
+          FGImage.boardDimsFromAspect
+        ) {
+          return FGImage.boardDimsFromAspect(
+            n,
+            sourceCropRect.w,
+            sourceCropRect.h
+          );
+        }
+        return { cols: n, rows: n };
+      }
+
       function render() {
         if (!sourceImg) return;
+        if (cutoutMode) exitCutoutMode(false);
         const side = Math.max(32, Math.min(144, +sideEl.value || 96));
         sideEl.value = String(side);
-        sideHint.textContent = String(side);
-        lastSide = side;
+        const grid = boardGridForSide(side);
+        const cols = grid.cols;
+        const rows = grid.rows;
+        sideHint.textContent =
+          cols === rows ? String(side) : cols + "×" + rows;
+        lastSide = Math.max(cols, rows);
         const contrast = (+contrastEl.value || 100) / 100;
         const sat = (+satEl.value || 100) / 100;
         contrastVal.textContent = contrast.toFixed(2);
         satVal.textContent = sat.toFixed(2);
 
         const dither = ditherEl.value;
+        function fitBoard(c, r, fitMode, o) {
+          if (FGImage.fitImageToGrid) {
+            return FGImage.fitImageToGrid(sourceImg, c, r, fitMode, o);
+          }
+          return FGImage.fitImageToSquare(sourceImg, Math.max(c, r), fitMode, o);
+        }
         /*
          * Cartoon / flat art: detect on nearest-neighbor probe BEFORE smooth resize.
          * Smooth shrink invents AA mud → nearest bead jumps (even with dither off).
@@ -3351,9 +4197,13 @@
         let isFlatArt = false;
         if (!fromTemplate && FGBeadFsV2 && FGBeadFsV2.detectFlatArt) {
           try {
-            const probe = FGImage.fitImageToSquare(sourceImg, 96, fitEl.value, {
-              smooth: false,
-            });
+            const probeGrid = boardGridForSide(96);
+            const probe = fitBoard(
+              probeGrid.cols,
+              probeGrid.rows,
+              fitEl.value,
+              fitOpts({ smooth: false })
+            );
             isFlatArt = FGBeadFsV2.detectFlatArt(
               probe.data.data,
               probe.data.width,
@@ -3364,11 +4214,17 @@
             isFlatArt = false;
           }
         }
-        let { data } = FGImage.fitImageToSquare(sourceImg, side, fitEl.value, {
-          smooth: !fromTemplate && !isFlatArt,
-        });
+        let { data } = fitBoard(
+          cols,
+          rows,
+          fitEl.value,
+          fitOpts({ smooth: !fromTemplate && !isFlatArt })
+        );
         if (!fromTemplate && !isFlatArt && (contrast !== 1 || sat !== 1)) {
           data = FGImage.adjustImageData(data, { contrast, saturation: sat });
+        }
+        if (cleanSkipWhiteEl && cleanSkipWhiteEl.checked && FGImage.clearNearWhite) {
+          data = FGImage.clearNearWhite(data).data;
         }
         const palette = resolvePalette(data);
         /* Handlike / FS V2 are separate modules — never routed through FGImage.quantizeImageData. */
@@ -3397,6 +4253,9 @@
             ditherStrength: dither === "fs" ? 0.85 : 1,
           });
         }
+        if (cleanSmoothEl && cleanSmoothEl.checked && FGImage.smoothMajorityImageData) {
+          quantized = FGImage.smoothMajorityImageData(quantized);
+        }
         if (!isFlatArt && dither !== "fs-v2" && tip) {
           tip.setAttribute("data-i18n", tipKey);
           tip.textContent = t(tipKey);
@@ -3408,6 +4267,7 @@
         const editPal = getEditPalette();
         brushColor = (editPal && editPal.colors[0]) || null;
         applyRmBgFromBase();
+        syncCropUi();
       }
 
       /** Pattern data for file export (ignore craft dimming). */
@@ -3772,6 +4632,8 @@
           fromTemplate = false; // real photo: smooth downscale + photo preset
           activeTplId = id;
           activeTplCat = tpl.cat;
+          sourceCropRect = null;
+          syncCropUi();
           importBanner.hidden = true;
           nameEl.value = tplName(tpl).slice(0, 40) || id;
           applyPreset("photo");
@@ -3791,6 +4653,8 @@
           sourceImg = await FGImage.loadImageFromFile(file);
           fromTemplate = false;
           activeTplId = null;
+          sourceCropRect = null;
+          syncCropUi();
           paintTplThumbs();
           importBanner.hidden = true;
           onImageReady();
@@ -4021,6 +4885,14 @@
       canvas.addEventListener("mousedown", (e) => {
         if (tryCraftPinAt(e)) return;
         if (craftMode) return;
+        if (cutoutMode) {
+          const cell = cellFromEvent(e);
+          if (!cell) return;
+          cutoutPainting = true;
+          paintCutoutAt(cell.x, cell.y);
+          e.preventDefault();
+          return;
+        }
         if (!canEditCanvas()) return;
         const cell = cellFromEvent(e);
         if (!cell) return;
@@ -4032,8 +4904,14 @@
       window.addEventListener("mouseup", () => {
         editPainting = false;
         editStrokeDirty = false;
+        cutoutPainting = false;
       });
       canvas.addEventListener("mousemove", (e) => {
+        if (cutoutMode && cutoutPainting) {
+          const cell = cellFromEvent(e);
+          if (cell) paintCutoutAt(cell.x, cell.y);
+          return;
+        }
         if (craftMode || !editPainting || !canEditCanvas()) return;
         const cell = cellFromEvent(e);
         if (!cell) return;
@@ -4044,6 +4922,14 @@
         (e) => {
           if (tryCraftPinAt(e)) return;
           if (craftMode) return;
+          if (cutoutMode) {
+            const cell = cellFromEvent(e);
+            if (!cell) return;
+            cutoutPainting = true;
+            paintCutoutAt(cell.x, cell.y);
+            e.preventDefault();
+            return;
+          }
           if (!canEditCanvas()) return;
           const cell = cellFromEvent(e);
           if (!cell) return;
@@ -4057,6 +4943,12 @@
       canvas.addEventListener(
         "touchmove",
         (e) => {
+          if (cutoutMode && cutoutPainting) {
+            const cell = cellFromEvent(e);
+            if (cell) paintCutoutAt(cell.x, cell.y);
+            e.preventDefault();
+            return;
+          }
           if (craftMode || !editPainting || !canEditCanvas()) return;
           const cell = cellFromEvent(e);
           if (!cell) return;
@@ -4068,6 +4960,7 @@
       canvas.addEventListener("touchend", () => {
         editPainting = false;
         editStrokeDirty = false;
+        cutoutPainting = false;
       });
 
       if (btnCraft) {
@@ -4122,27 +5015,75 @@
           FGTool.track("perler", "craft_mode_" + craftGuide);
         });
       });
+      function nudgeCraftRange(delta) {
+        if (!lastQuantized) return;
+        if (craftGuide === "row") {
+          const h = lastQuantized.height;
+          const order = [];
+          for (let y = 0; y < h; y++) order.push(y);
+          if (craftMirrorV) order.reverse();
+          let i = order.indexOf(craftRow);
+          if (i < 0) i = 0;
+          i = Math.max(0, Math.min(order.length - 1, i + delta));
+          craftRow = order[i];
+        } else if (craftGuide === "column") {
+          const w = lastQuantized.width;
+          const order = [];
+          for (let x = 0; x < w; x++) order.push(x);
+          if (craftMirrorH) order.reverse();
+          let i = order.indexOf(craftCol);
+          if (i < 0) i = 0;
+          i = Math.max(0, Math.min(order.length - 1, i + delta));
+          craftCol = order[i];
+        } else if (craftGuide === "zone") {
+          const layout = ensureCraftZoneLayout();
+          const zones = (layout && layout.zones) || [];
+          if (!zones.length) return;
+          const curKey = FGBeadPlaceZones.zoneKey(
+            craftFocusZone.zr,
+            craftFocusZone.zc
+          );
+          let i = zones.findIndex((z) => z.key === curKey);
+          if (i < 0) i = 0;
+          i = Math.max(0, Math.min(zones.length - 1, i + delta));
+          craftFocusZone = { zr: zones[i].zr, zc: zones[i].zc };
+        } else {
+          return;
+        }
+        rebuildCraftStepList({ reset: true });
+        craftPin = null;
+        craftStepFromNav = false;
+        syncCraftRangeLabel();
+        drawPatternCanvas();
+        syncCraftStepUi();
+        craftProgressDirty = true;
+      }
       if (btnCraftRowPrev) {
-        btnCraftRowPrev.addEventListener("click", () => {
-          craftRow = Math.max(0, craftRow - 1);
-          rebuildCraftStepList({ reset: true });
-          craftPin = null;
-          craftStepFromNav = false;
-          syncCraftRowLabel();
-          drawPatternCanvas();
-          syncCraftStepUi();
-        });
+        btnCraftRowPrev.addEventListener("click", () => nudgeCraftRange(-1));
       }
       if (btnCraftRowNext) {
-        btnCraftRowNext.addEventListener("click", () => {
-          const h = lastQuantized ? lastQuantized.height : 1;
-          craftRow = Math.min(h - 1, craftRow + 1);
+        btnCraftRowNext.addEventListener("click", () => nudgeCraftRange(1));
+      }
+      if (btnCraftMirrorH) {
+        btnCraftMirrorH.addEventListener("click", () => {
+          craftMirrorH = !craftMirrorH;
           rebuildCraftStepList({ reset: true });
-          craftPin = null;
-          craftStepFromNav = false;
-          syncCraftRowLabel();
+          craftProgressDirty = true;
+          saveCraftProgressNow();
+          syncCraftChrome();
           drawPatternCanvas();
-          syncCraftStepUi();
+          FGTool.track("perler", craftMirrorH ? "craft_mirror_h_on" : "craft_mirror_h_off");
+        });
+      }
+      if (btnCraftMirrorV) {
+        btnCraftMirrorV.addEventListener("click", () => {
+          craftMirrorV = !craftMirrorV;
+          rebuildCraftStepList({ reset: true });
+          craftProgressDirty = true;
+          saveCraftProgressNow();
+          syncCraftChrome();
+          drawPatternCanvas();
+          FGTool.track("perler", craftMirrorV ? "craft_mirror_v_on" : "craft_mirror_v_off");
         });
       }
       if (craftStepPrev) {
@@ -4166,6 +5107,8 @@
           const next = FGImage.rotateImageCW90(sourceImg);
           if (!next) return;
           sourceImg = next;
+          sourceCropRect = null;
+          syncCropUi();
           FGTool.track("perler", "rotate90");
           render();
         });
@@ -4208,6 +5151,7 @@
       }
       if (btnRmBg) {
         btnRmBg.addEventListener("click", () => {
+          if (cutoutMode) return;
           if (!lastQuantizedBase && !lastQuantized) return;
           if (!lastQuantizedBase && lastQuantized) {
             lastQuantizedBase = cloneImageData(lastQuantized);
@@ -4217,16 +5161,185 @@
           FGTool.track("perler", rmBgOn ? "rmbg_on" : "rmbg_off");
         });
       }
+      if (btnCutout) {
+        btnCutout.addEventListener("click", () => {
+          if (craftMode) return;
+          if (cutoutMode) {
+            exitCutoutMode(true);
+            FGTool.track("perler", "cutout_off");
+          } else {
+            enterCutoutMode();
+          }
+        });
+      }
+      if (btnCutoutKeep) {
+        btnCutoutKeep.addEventListener("click", () => {
+          cutoutTool = "keep";
+          syncCutoutUi();
+        });
+      }
+      if (btnCutoutErase) {
+        btnCutoutErase.addEventListener("click", () => {
+          cutoutTool = "erase";
+          syncCutoutUi();
+        });
+      }
+      if (cutoutBrushEl) {
+        cutoutBrushEl.addEventListener("input", () => {
+          if (cutoutBrushVal) cutoutBrushVal.textContent = String(+cutoutBrushEl.value || 3);
+        });
+      }
+      if (btnCutoutApply) {
+        btnCutoutApply.addEventListener("click", () => applyCutoutMask());
+      }
+      if (btnCutoutCancel) {
+        btnCutoutCancel.addEventListener("click", () => {
+          exitCutoutMode(true);
+          FGTool.track("perler", "cutout_cancel");
+        });
+      }
+      if (btnCrop) {
+        btnCrop.addEventListener("click", () => openCropModal());
+      }
+      if (cropShapeSquare) {
+        cropShapeSquare.addEventListener("click", () => {
+          cropLockSquare = true;
+          syncCropShapeButtons();
+          if (cropModal && !cropModal.hidden) refreshCropModalLayout();
+        });
+      }
+      if (cropShapeFree) {
+        cropShapeFree.addEventListener("click", () => {
+          cropLockSquare = false;
+          syncCropShapeButtons();
+          if (cropModal && !cropModal.hidden) {
+            /* Free: expand to full frame so edges match the photo. */
+            refreshCropModalLayout({
+              resetDraft: true,
+              draft: cropLayout
+                ? { x: 0, y: 0, w: cropLayout.sw, h: cropLayout.sh }
+                : null,
+            });
+          }
+        });
+      }
+      window.addEventListener("resize", () => {
+        if (cropModal && !cropModal.hidden) refreshCropModalLayout();
+      });
+      if (cropApplyBtn) {
+        cropApplyBtn.addEventListener("click", () => {
+          if (cropDraft) {
+            sourceCropRect = {
+              x: cropDraft.x | 0,
+              y: cropDraft.y | 0,
+              w: cropDraft.w | 0,
+              h: cropDraft.h | 0,
+            };
+          }
+          closeCropModal();
+          syncCropUi();
+          if (sourceImg) render();
+          FGTool.track("perler", "crop_apply");
+        });
+      }
+      if (cropClearBtn) {
+        cropClearBtn.addEventListener("click", () => {
+          sourceCropRect = null;
+          closeCropModal();
+          syncCropUi();
+          if (sourceImg) render();
+          FGTool.track("perler", "crop_clear");
+        });
+      }
+      if (cropCancelBtn) {
+        cropCancelBtn.addEventListener("click", () => closeCropModal());
+      }
+      if (cropBox) {
+        cropBox.addEventListener("mousedown", (e) => {
+          const h = e.target && e.target.getAttribute
+            ? e.target.getAttribute("data-crop-handle")
+            : null;
+          beginCropDrag(e, h || "move");
+        });
+        cropBox.addEventListener(
+          "touchstart",
+          (e) => {
+            const h = e.target && e.target.getAttribute
+              ? e.target.getAttribute("data-crop-handle")
+              : null;
+            beginCropDrag(e, h || "move");
+          },
+          { passive: false }
+        );
+      }
+      window.addEventListener("mousemove", (e) => {
+        if (cropDrag) moveCropDrag(e);
+      });
+      window.addEventListener("mouseup", endCropDrag);
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          if (cropDrag) moveCropDrag(e);
+        },
+        { passive: false }
+      );
+      window.addEventListener("touchend", endCropDrag);
+      if (cleanSkipWhiteEl) {
+        cleanSkipWhiteEl.addEventListener("change", () => {
+          if (sourceImg) render();
+          FGTool.track("perler", cleanSkipWhiteEl.checked ? "clean_white_on" : "clean_white_off");
+        });
+      }
+      if (cleanSmoothEl) {
+        cleanSmoothEl.addEventListener("change", () => {
+          if (sourceImg) render();
+          FGTool.track("perler", cleanSmoothEl.checked ? "clean_smooth_on" : "clean_smooth_off");
+        });
+      }
+      if (btnCleanIslands) {
+        btnCleanIslands.addEventListener("click", () => {
+          if (!lastQuantized || cutoutMode) return;
+          if (!FGBeadStructure || !FGBeadStructure.clearIslandsOnImageData) return;
+          pushUndo();
+          const r1 = FGBeadStructure.clearIslandsOnImageData(lastQuantized, {
+            islandMax: 3,
+          });
+          lastQuantized = r1.data;
+          if (
+            lastQuantizedBase &&
+            lastQuantizedBase.width === lastQuantized.width &&
+            lastQuantizedBase.height === lastQuantized.height
+          ) {
+            const r2 = FGBeadStructure.clearIslandsOnImageData(lastQuantizedBase, {
+              islandMax: 3,
+            });
+            lastQuantizedBase = r2.data;
+          }
+          refreshFromQuantized();
+          if (tip) {
+            tip.textContent = t("perler.clean.cleared").replace(
+              "{n}",
+              String(r1.cleared || 0)
+            );
+          }
+          FGTool.track("perler", "clean_islands");
+        });
+      }
+      if (btnCopyUsage) {
+        btnCopyUsage.addEventListener("click", () => {
+          copyUsageText();
+        });
+      }
       if (btnErase) {
         btnErase.addEventListener("click", () => {
-          if (!lastQuantized || craftMode) return;
+          if (!lastQuantized || craftMode || cutoutMode) return;
           setEditTool("eraser", { toggle: true });
           FGTool.track("perler", editArmed && editTool === "eraser" ? "erase_on" : "erase_off");
         });
       }
       if (btnEraseFill) {
         btnEraseFill.addEventListener("click", () => {
-          if (!lastQuantized || craftMode) return;
+          if (!lastQuantized || craftMode || cutoutMode) return;
           setEditTool("erase-fill", { toggle: true });
           FGTool.track(
             "perler",
@@ -4606,6 +5719,8 @@
           sourceImg = await FGTool.dataURLToImage(h.dataURL);
           fromTemplate = false;
           activeTplId = null;
+          sourceCropRect = null;
+          syncCropUi();
           paintTplThumbs();
           importBanner.hidden = false;
           if (h.meta && h.meta.paletteId && h.meta.paletteId !== "auto") {

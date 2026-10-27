@@ -1,6 +1,6 @@
 /**
  * A3 lite — starter photo template(s) for the perler maker.
- * Real image assets under ./templates/
+ * Real image assets under /tools/perler/templates/
  */
 (function (global) {
   const TEMPLATES = [
@@ -8,7 +8,7 @@
       id: "portrait",
       cat: "people",
       nameKey: "perler.tpl.portrait",
-      src: "./templates/portrait.jpg",
+      src: "/tools/perler/templates/portrait.jpg",
       /** Photo fidelity defaults when loading this template */
       mode: "photo",
     },

@@ -50,16 +50,43 @@
     return { canvas, ctx, data: ctx.getImageData(0, 0, w, h) };
   }
 
+  function clampBoardSide(n) {
+    return Math.max(32, Math.min(144, Math.round(Number(n) || 32)));
+  }
+
   /**
-   * Fit source into side×side.
-   * mode: "cover" (crop center) | "contain" (letterbox) | "stretch"
+   * Map long-edge bead count + aspect → cols×rows (matches weapp boardDimsFromAspect).
    */
-  function fitImageToSquare(img, side, mode, opts) {
+  function boardDimsFromAspect(base, aspectW, aspectH) {
+    const aw = Math.max(1e-6, Number(aspectW) || 1);
+    const ah = Math.max(1e-6, Number(aspectH) || 1);
+    const baseN = clampBoardSide(base);
+    let cols;
+    let rows;
+    if (aw >= ah) {
+      cols = baseN;
+      rows = Math.round((baseN * ah) / aw);
+    } else {
+      rows = baseN;
+      cols = Math.round((baseN * aw) / ah);
+    }
+    return { cols: clampBoardSide(cols), rows: clampBoardSide(rows) };
+  }
+
+  /**
+   * Fit source into cols×rows bead grid.
+   * mode: "cover" (crop center) | "contain" (letterbox) | "stretch"
+   * opts.sourceRect: crop window in source pixels; drawn with uniform scale into
+   * the grid (callers should pass cols/rows matching the rect aspect).
+   */
+  function fitImageToGrid(img, cols, rows, mode, opts) {
     const sw = img.naturalWidth || img.width;
     const sh = img.naturalHeight || img.height;
+    const cw = Math.max(1, cols | 0);
+    const rhOut = Math.max(1, rows | 0);
     const canvas = document.createElement("canvas");
-    canvas.width = side;
-    canvas.height = side;
+    canvas.width = cw;
+    canvas.height = rhOut;
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const smooth = !opts || opts.smooth !== false;
     ctx.imageSmoothingEnabled = smooth;
@@ -68,31 +95,242 @@
     }
 
     const m = mode || "cover";
-    if (m === "stretch") {
-      ctx.drawImage(img, 0, 0, side, side);
+    const sr = opts && opts.sourceRect;
+    if (
+      sr &&
+      sr.w > 0 &&
+      sr.h > 0 &&
+      Number.isFinite(sr.x) &&
+      Number.isFinite(sr.y)
+    ) {
+      const sx = Math.max(0, Math.min(sw - 1, sr.x | 0));
+      const sy = Math.max(0, Math.min(sh - 1, sr.y | 0));
+      const rw = Math.max(1, Math.min(sw - sx, sr.w | 0));
+      const rh = Math.max(1, Math.min(sh - sy, sr.h | 0));
+      /* Aspect-matched grid → uniform scale (no stretch). Otherwise contain. */
+      const gridAspect = cw / rhOut;
+      const srcAspect = rw / rh;
+      if (Math.abs(gridAspect - srcAspect) < 0.02 || m === "stretch") {
+        ctx.drawImage(img, sx, sy, rw, rh, 0, 0, cw, rhOut);
+      } else if (m === "contain") {
+        ctx.clearRect(0, 0, cw, rhOut);
+        const s = Math.min(cw / rw, rhOut / rh);
+        const dw = Math.max(1, Math.round(rw * s));
+        const dh = Math.max(1, Math.round(rh * s));
+        ctx.drawImage(
+          img,
+          sx,
+          sy,
+          rw,
+          rh,
+          ((cw - dw) / 2) | 0,
+          ((rhOut - dh) / 2) | 0,
+          dw,
+          dh
+        );
+      } else {
+        const s = Math.max(cw / rw, rhOut / rh);
+        const dw = rw * s;
+        const dh = rh * s;
+        ctx.drawImage(
+          img,
+          sx,
+          sy,
+          rw,
+          rh,
+          ((cw - dw) / 2) | 0,
+          ((rhOut - dh) / 2) | 0,
+          dw,
+          dh
+        );
+      }
+    } else if (m === "stretch") {
+      ctx.drawImage(img, 0, 0, cw, rhOut);
     } else if (m === "contain") {
       /* Transparent letterbox by default so pads are not quantized as beads
          and do not steal edge seeds from Remove BG. Pass padColor to force a fill. */
       if (opts && opts.padColor) {
         ctx.fillStyle = opts.padColor;
-        ctx.fillRect(0, 0, side, side);
+        ctx.fillRect(0, 0, cw, rhOut);
       } else {
-        ctx.clearRect(0, 0, side, side);
+        ctx.clearRect(0, 0, cw, rhOut);
       }
-      const s = Math.min(side / sw, side / sh);
+      const s = Math.min(cw / sw, rhOut / sh);
       const dw = Math.max(1, Math.round(sw * s));
       const dh = Math.max(1, Math.round(sh * s));
-      ctx.drawImage(img, ((side - dw) / 2) | 0, ((side - dh) / 2) | 0, dw, dh);
+      ctx.drawImage(img, ((cw - dw) / 2) | 0, ((rhOut - dh) / 2) | 0, dw, dh);
     } else {
       // cover — center crop
-      const s = Math.max(side / sw, side / sh);
+      const s = Math.max(cw / sw, rhOut / sh);
       const dw = sw * s;
       const dh = sh * s;
-      const ox = (side - dw) / 2;
-      const oy = (side - dh) / 2;
+      const ox = (cw - dw) / 2;
+      const oy = (rhOut - dh) / 2;
       ctx.drawImage(img, ox, oy, dw, dh);
     }
-    return { canvas, ctx, data: ctx.getImageData(0, 0, side, side) };
+    return { canvas, ctx, data: ctx.getImageData(0, 0, cw, rhOut) };
+  }
+
+  /** Fit source into side×side (legacy). */
+  function fitImageToSquare(img, side, mode, opts) {
+    return fitImageToGrid(img, side, side, mode, opts);
+  }
+
+  /** Clear near-white / near-gray opaque pixels (白底不铺). Mutates copy. */
+  function clearNearWhite(imageData, opts) {
+    const o = opts || {};
+    const thr = Math.max(180, Math.min(255, o.threshold != null ? +o.threshold : 245));
+    const satMax = Math.max(0, Math.min(40, o.satMax != null ? +o.satMax : 18));
+    const src = imageData.data;
+    const out = new ImageData(
+      new Uint8ClampedArray(src),
+      imageData.width,
+      imageData.height
+    );
+    const d = out.data;
+    let cleared = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 16) continue;
+      const r = d[i];
+      const g = d[i + 1];
+      const b = d[i + 2];
+      const mx = Math.max(r, g, b);
+      const mn = Math.min(r, g, b);
+      if (mx >= thr && mx - mn <= satMax) {
+        d[i + 3] = 0;
+        cleared += 1;
+      }
+    }
+    return { data: out, cleared: cleared };
+  }
+
+  /** 3×3 majority smooth on quantized opaque cells (少杂色). */
+  function smoothMajorityImageData(imageData) {
+    const w = imageData.width;
+    const h = imageData.height;
+    const src = imageData.data;
+    const out = new ImageData(new Uint8ClampedArray(src), w, h);
+    const d = out.data;
+    const keyAt = (x, y) => {
+      if (x < 0 || y < 0 || x >= w || y >= h) return null;
+      const i = (y * w + x) * 4;
+      if (src[i + 3] < 16) return null;
+      return src[i] + "," + src[i + 1] + "," + src[i + 2];
+    };
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (src[i + 3] < 16) continue;
+        const counts = Object.create(null);
+        let best = null;
+        let bestN = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const k = keyAt(x + dx, y + dy);
+            if (!k) continue;
+            counts[k] = (counts[k] || 0) + 1;
+            if (counts[k] > bestN) {
+              bestN = counts[k];
+              best = k;
+            }
+          }
+        }
+        if (!best || bestN < 3) continue;
+        const parts = best.split(",");
+        d[i] = +parts[0];
+        d[i + 1] = +parts[1];
+        d[i + 2] = +parts[2];
+      }
+    }
+    return out;
+  }
+
+  function initKeepMask(imageData) {
+    const w = imageData.width;
+    const h = imageData.height;
+    const d = imageData.data;
+    const mask = new Uint8Array(w * h);
+    let keep = 0;
+    for (let i = 0; i < mask.length; i++) {
+      const on = d[i * 4 + 3] >= 16 ? 1 : 0;
+      mask[i] = on;
+      keep += on;
+    }
+    if (keep >= mask.length * 0.92) mask.fill(0);
+    return mask;
+  }
+
+  function applyKeepMask(imageData, mask) {
+    const out = new ImageData(
+      new Uint8ClampedArray(imageData.data),
+      imageData.width,
+      imageData.height
+    );
+    if (!mask) return out;
+    const d = out.data;
+    const n = Math.min(mask.length, out.width * out.height);
+    for (let i = 0; i < n; i++) {
+      if (!mask[i]) d[i * 4 + 3] = 0;
+    }
+    return out;
+  }
+
+  /**
+   * Cutout edit preview: keep cells full strength; discard dimmed.
+   * Also darkens RGB so bead-grid draw (which ignores partial alpha) still shows a matte.
+   */
+  function previewKeepMask(imageData, mask) {
+    const out = new ImageData(
+      new Uint8ClampedArray(imageData.data),
+      imageData.width,
+      imageData.height
+    );
+    if (!mask) return out;
+    const d = out.data;
+    const n = Math.min(mask.length, out.width * out.height);
+    for (let i = 0; i < n; i++) {
+      const p = i * 4;
+      if (!mask[i]) {
+        d[p] = (d[p] * 0.2) | 0;
+        d[p + 1] = (d[p + 1] * 0.2) | 0;
+        d[p + 2] = (d[p + 2] * 0.22) | 0;
+        d[p + 3] = Math.round(d[p + 3] * 0.28);
+      } else if (d[p + 3] >= 16) {
+        /* Slight mint lift so painted keep reads against dim discard */
+        d[p + 1] = Math.min(255, d[p + 1] + 20);
+      }
+    }
+    return out;
+  }
+
+  function paintMaskDisk(mask, w, h, cx, cy, radius, value) {
+    const changed = [];
+    const r = Math.max(1, Math.round(radius));
+    const r2 = r * r;
+    const x0 = Math.max(0, Math.floor(cx - r));
+    const x1 = Math.min(w - 1, Math.ceil(cx + r));
+    const y0 = Math.max(0, Math.floor(cy - r));
+    const y1 = Math.min(h - 1, Math.ceil(cy + r));
+    const v = value ? 1 : 0;
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const dx = x - cx;
+        const dy = y - cy;
+        if (dx * dx + dy * dy > r2) continue;
+        const idx = y * w + x;
+        if (mask[idx] === v) continue;
+        changed.push({ i: idx, prev: mask[idx] });
+        mask[idx] = v;
+      }
+    }
+    return changed;
+  }
+
+  function restoreMaskStroke(mask, changed) {
+    if (!mask || !changed) return;
+    for (let k = 0; k < changed.length; k++) {
+      mask[changed[k].i] = changed[k].prev;
+    }
   }
 
   /** Weighted RGB distance (closer to human perception than plain Euclidean). */
@@ -1610,6 +1848,16 @@
     rotateImageCW90,
     imageToImageData,
     fitImageToSquare,
+    fitImageToGrid,
+    boardDimsFromAspect,
+    clampBoardSide,
+    clearNearWhite,
+    smoothMajorityImageData,
+    initKeepMask,
+    applyKeepMask,
+    previewKeepMask,
+    paintMaskDisk,
+    restoreMaskStroke,
     adjustImageData,
     nearestColor,
     extractPalette,

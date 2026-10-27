@@ -273,6 +273,93 @@
     return new ImageData(data, w, h);
   }
 
+  /**
+   * Clear small islands (and optional thin tips) to transparent on quantized ImageData.
+   * Uses the same component scan as analyzeMask; islandMax defaults to 3.
+   */
+  function clearIslandsOnImageData(imageData, opts) {
+    const o = opts || {};
+    const islandMax = o.islandMax != null ? o.islandMax | 0 : 3;
+    const includeTips = !!o.includeTips;
+    const mask = maskFromImageData(imageData);
+    const w = imageData.width;
+    const h = imageData.height;
+    const report = analyzeMask(mask, { islandMax: islandMax });
+    const out = new ImageData(
+      new Uint8ClampedArray(imageData.data),
+      w,
+      h
+    );
+    const d = out.data;
+    let cleared = 0;
+    /* Rebuild island cells from mask components ≤ islandMax */
+    const seen = new Uint8Array(w * h);
+    const q = new Int32Array(w * h);
+    function flood(sx, sy) {
+      const cells = [];
+      let head = 0;
+      let tail = 0;
+      const start = sy * w + sx;
+      if (seen[start] || !mask[start]) return cells;
+      seen[start] = 1;
+      q[tail++] = start;
+      while (head < tail) {
+        const idx = q[head++];
+        cells.push(idx);
+        const x = idx % w;
+        const y = (idx / w) | 0;
+        const nbs = [
+          [x - 1, y],
+          [x + 1, y],
+          [x, y - 1],
+          [x, y + 1],
+        ];
+        for (let i = 0; i < 4; i++) {
+          const nx = nbs[i][0];
+          const ny = nbs[i][1];
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const nidx = ny * w + nx;
+          if (seen[nidx] || !mask[nidx]) continue;
+          seen[nidx] = 1;
+          q[tail++] = nidx;
+        }
+      }
+      return cells;
+    }
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x;
+        if (!mask[idx] || seen[idx]) continue;
+        const cells = flood(x, y);
+        if (cells.length > 0 && cells.length <= islandMax) {
+          cells.forEach((ci) => {
+            d[ci * 4 + 3] = 0;
+            cleared += 1;
+          });
+        }
+      }
+    }
+    if (includeTips && report.thinTips > 0) {
+      /* Tip clear: opaque with ≤1 orthogonal opaque neighbor */
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          if (d[i + 3] < 16) continue;
+          let n = 0;
+          if (x > 0 && d[(y * w + x - 1) * 4 + 3] >= 16) n++;
+          if (x + 1 < w && d[(y * w + x + 1) * 4 + 3] >= 16) n++;
+          if (y > 0 && d[((y - 1) * w + x) * 4 + 3] >= 16) n++;
+          if (y + 1 < h && d[((y + 1) * w + x) * 4 + 3] >= 16) n++;
+          if (n <= 1) {
+            d[i + 3] = 0;
+            cleared += 1;
+          }
+        }
+      }
+    }
+    return { data: out, cleared: cleared, islands: report.islands };
+  }
+
   global.FGBeadStructure = {
     BOARD_SIDES,
     analyzeImageData,
@@ -282,5 +369,6 @@
     maskFromGrid,
     gridFromImageData,
     imageDataFromGrid,
+    clearIslandsOnImageData,
   };
 })(typeof window !== "undefined" ? window : globalThis);

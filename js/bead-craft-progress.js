@@ -4,6 +4,7 @@
 (function (global) {
   const KEY = "fg.beadCraftProgress.v1";
   const MAX_ENTRIES = 12;
+  const GUIDES = { color: 1, row: 1, column: 1, zone: 1 };
 
   function loadAll() {
     try {
@@ -44,7 +45,6 @@
       const i = p * 4;
       mix(d[i] | (d[i + 1] << 8) | (d[i + 2] << 16) | (d[i + 3] << 24));
     }
-    /* Include corners + center for small patterns */
     const samples = [
       0,
       w - 1,
@@ -64,6 +64,10 @@
     return String(x | 0) + "," + String(y | 0);
   }
 
+  function normalizeGuide(g) {
+    return GUIDES[g] ? g : "color";
+  }
+
   function load(fp) {
     if (!fp) return null;
     const all = loadAll();
@@ -75,14 +79,26 @@
   function save(fp, payload) {
     if (!fp || !payload) return;
     const all = loadAll();
+    const fz =
+      payload.focusZone && typeof payload.focusZone === "object"
+        ? {
+            zr: Math.max(0, payload.focusZone.zr | 0),
+            zc: Math.max(0, payload.focusZone.zc | 0),
+          }
+        : { zr: 0, zc: 0 };
     all[fp] = {
       fingerprint: fp,
       w: payload.w | 0,
       h: payload.h | 0,
       placed: Array.isArray(payload.placed) ? payload.placed : [],
-      guide: payload.guide === "row" ? "row" : "color",
+      guide: normalizeGuide(payload.guide),
       focusId: payload.focusId == null ? null : payload.focusId,
       row: payload.row | 0,
+      col: payload.col | 0,
+      zoneSize: Math.max(1, (payload.zoneSize | 0) || 5),
+      focusZone: fz,
+      craftMirrorH: !!payload.craftMirrorH,
+      craftMirrorV: !!payload.craftMirrorV,
       updatedAt: Date.now(),
     };
     const keys = Object.keys(all).sort(
@@ -105,11 +121,12 @@
   }
 
   global.FGBeadCraftProgress = {
-    KEY,
-    fingerprint,
-    cellKey,
-    load,
-    save,
-    remove,
+    KEY: KEY,
+    fingerprint: fingerprint,
+    cellKey: cellKey,
+    normalizeGuide: normalizeGuide,
+    load: load,
+    save: save,
+    remove: remove,
   };
 })(typeof window !== "undefined" ? window : globalThis);
