@@ -9,13 +9,18 @@ Upload a photo in the browser, map it to brand bead palettes, clean noise, follo
 - Live product mirror: [fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - Repository: [github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
 
-## Features
+## Feature highlights
 
-- Multi-brand palettes (MARD / COCO / Manman / Panpan / Mixiaowo / Artkal / Perler / Hama / …)
-- Photo / flat-art pipelines (including FS v2 dither path)
-- Background remove, edit tools, sparse color merge
-- Inventory colors, bead counts, CSV / PNG / print boards
-- Craft “follow” mode with local progress + drafts (IndexedDB / localStorage)
+- **Photo → pattern**: Sample by bead grid; presets for photo fidelity, detail, hand-drawn look, and custom size / color count.
+- **Multi-brand palettes**: Built-in MARD, COCO, Manman, Panpan, Mixiaowo, Artkal, Perler, Hama, and more — patterns ship with real color codes.
+- **FS v2 / hand-like pipelines**: Quantize and dither paths tuned for illustration and photos, cleaner blocks with fewer muddy edges.
+- **Background remove & edit**: One-tap outer background cut (tolerance); paint, bucket, recolor, eraser, region erase, with undo.
+- **Sparse color merge**: Merge speckles by similarity threshold for cleaner boards and simpler shopping lists.
+- **Inventory colors**: Mark beads you already own; optionally rematch using stock-only colors.
+- **Follow / craft mode (highlight)**: Place by color or by row; “Next bead” advances cell-by-cell with saved progress, color focus, rulers, and local drafts you can resume later.
+- **Counts & structure tips**: Per-color bead totals and pack estimates; structure panel for connectivity checks.
+- **Print & export**: PNG patterns, code-labeled sheets, CSV lists; optional 29×29 / 58×58 board tiling and peg-pitch hints.
+- **Browser-local & open source**: All conversion stays on your device — no image upload. MIT license, easy to self-host.
 
 ## Quick start
 
