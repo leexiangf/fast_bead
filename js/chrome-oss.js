@@ -3,6 +3,7 @@
   const SITE_SOCIAL = {
     github: "https://github.com/leexiangf/fast_bead",
     live: "https://fastgames.cn/tools/perler/",
+    xhs: "https://www.xiaohongshu.com/user/profile/65f3a4b9000000000d02770b",
     weappName: "李随便拼豆",
   };
 
@@ -19,6 +20,9 @@
         FGi18n.lang === "zh" ? "在线演示" : "Live demo"
       }</a>` +
       `<a href="${SITE_SOCIAL.github}" target="_blank" rel="noopener noreferrer">GitHub</a>` +
+      `<a href="${SITE_SOCIAL.xhs}" target="_blank" rel="noopener noreferrer">${
+        FGi18n.lang === "zh" ? "小红书" : "Xiaohongshu"
+      }</a>` +
       `<span class="topnav__meta" title="${
         FGi18n.lang === "zh" ? "微信搜索小程序名称" : "Search in WeChat mini programs"
       }">${weapp}</span>` +

@@ -7,6 +7,7 @@
 - 在线演示：[fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - 本仓库：[github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
 - 微信小程序：**李随便拼豆**
+- 小红书：[主页](https://www.xiaohongshu.com/user/profile/65f3a4b9000000000d02770b)
 
 ![Fast Bead 效果图：照片转拼豆图纸](./docs/images/screenshot.png)
 
