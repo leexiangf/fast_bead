@@ -2,9 +2,7 @@
 
 **English** | [中文](./README.zh-CN.md)
 
-Open-source **photo → perler / fuse-bead pattern** generator.
-
-Upload a photo in the browser, map it to brand bead palettes, clean noise, follow-place while crafting, and export printable sheets. **No upload to a server** — processing stays on your device.
+Free open-source **Perler bead pattern maker**: turn a photo into a printable pattern with color codes and bead counts. Edit colors, use inventory stock, and follow along while placing — **all in the browser, nothing uploads.**
 
 - Live product mirror: [fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - Repository: [github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)

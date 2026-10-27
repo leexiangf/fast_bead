@@ -2,7 +2,7 @@
   "name": "fast-bead",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source photo to perler bead pattern generator",
+  "description": "Free Perler bead pattern maker: photo to printable pattern with color codes",
   "scripts": {
     "start": "npx --yes serve -l 5173 .",
     "serve": "npm start"

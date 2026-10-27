@@ -2,9 +2,7 @@
 
 [English](./README.md) | **中文**
 
-开源的 **照片 → 拼豆 / 融合豆图纸** 工具。
-
-在浏览器里上传照片，映射到各品牌色号，清理杂色，跟摆时记录进度，并导出可打印图纸。**图片不会上传到服务器**，全部在本地处理。
+免费开源的**拼豆图纸生成器**：把照片转成带色号的拼豆图纸，自动统计珠数，下载就能打印。支持改色精修、库存色与跟摆进度。**图片只在浏览器本地处理，不上传。**
 
 - 在线演示：[fastgames.cn/tools/perler](https://fastgames.cn/tools/perler/)
 - 本仓库：[github.com/leexiangf/fast_bead](https://github.com/leexiangf/fast_bead)
