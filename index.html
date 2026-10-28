@@ -57,7 +57,7 @@
             <div class="params-cell params-cell--left" id="slot-side">
               <div class="field">
                 <label for="side"><span data-i18n="perler.side"></span> <span id="side-hint">96</span></label>
-                <input id="side" type="range" min="32" max="144" value="96" />
+                <input id="side" type="range" min="29" max="144" value="96" />
               </div>
             </div>
           </div>
@@ -101,6 +101,7 @@
                     <option value="none" data-i18n="perler.dither.none"></option>
                     <option value="handlike" data-i18n="perler.dither.handlike"></option>
                     <option value="bayer" data-i18n="perler.dither.bayer"></option>
+                    <option value="small-board" data-i18n="perler.dither.smallBoard"></option>
                   </optgroup>
                   <optgroup data-i18n-attr="label:perler.dither.group.sticker">
                     <option value="outline-fs" data-i18n="perler.dither.outlineFs"></option>
@@ -191,6 +192,7 @@
                 <p class="edit-panel__hint" data-i18n="perler.edit.tapHint" hidden></p>
                   <div class="edit-tools" id="edit-tools" role="toolbar">
                   <button type="button" class="btn btn--ghost edit-tool is-active" data-edit="paint" data-i18n="perler.edit.paint"></button>
+                  <button type="button" class="btn btn--ghost edit-tool" data-edit="eyedrop" data-i18n="perler.edit.eyedrop"></button>
                   <button type="button" class="btn btn--ghost edit-tool" data-edit="bucket" data-i18n="perler.edit.bucket"></button>
                   <button type="button" class="btn btn--ghost edit-tool" data-edit="replace" data-i18n="perler.edit.replace"></button>
                   <button type="button" class="btn btn--ghost edit-tool" data-edit="eraser" data-i18n="perler.edit.eraser"></button>
@@ -200,6 +202,22 @@
                 <div class="field field--inline" id="field-erase-brush">
                   <label for="erase-brush"><span data-i18n="perler.erase.brush"></span> <span id="erase-brush-val">1</span></label>
                   <input id="erase-brush" type="range" min="1" max="5" value="1" />
+                </div>
+                <div class="edit-brush-bar" id="edit-brush-bar" hidden>
+                  <span class="edit-brush-bar__chip" id="edit-brush-chip" aria-hidden="true"></span>
+                  <span class="edit-brush-bar__code" id="edit-brush-code"></span>
+                  <span class="edit-brush-bar__name" id="edit-brush-name"></span>
+                  <input
+                    type="search"
+                    class="edit-brush-bar__find"
+                    id="edit-brush-find"
+                    autocomplete="off"
+                    spellcheck="false"
+                    data-i18n="perler.edit.findCodePh"
+                    data-i18n-placeholder
+                    data-i18n-attr="aria-label:perler.edit.findCode"
+                    placeholder=""
+                  />
                 </div>
                 <div class="edit-swatches" id="edit-swatches"></div>
               </div>
@@ -232,19 +250,35 @@
 
       <div class="panel preview-stage" id="preview-stage">
         <div class="craft-dock" id="craft-dock-bar" title="">
-          <div class="craft-dock__preview-toggles" id="preview-toggles" role="group">
-            <button type="button" class="btn btn--ghost" id="btn-show-codes" disabled data-i18n="perler.codes.toggle" aria-pressed="false"></button>
-            <button type="button" class="btn btn--ghost" id="btn-rm-bg" disabled data-i18n="perler.rmBg.toggle" aria-pressed="false"></button>
-            <button type="button" class="btn btn--ghost" id="btn-cutout" disabled data-i18n="perler.cutout.toggle" aria-pressed="false"></button>
-            <button type="button" class="btn btn--ghost" id="btn-erase" disabled data-i18n="perler.erase.toggle" aria-pressed="false"></button>
-            <button type="button" class="btn btn--ghost" id="btn-erase-fill" disabled data-i18n="perler.erase.fill" aria-pressed="false"></button>
-            <button type="button" class="btn btn--ghost" id="btn-mirror" disabled data-i18n="perler.mirror.toggle" aria-pressed="false"></button>
-            <button type="button" class="btn btn--ghost" id="btn-pan" disabled data-i18n="perler.pan.toggle" aria-pressed="false"></button>
-            <span class="craft-dock__zoom-group" role="group" aria-label="zoom">
-              <input type="range" id="zoom-slider" class="craft-dock__zoom-slider" min="25" max="400" step="1" value="100" disabled />
-              <span class="craft-dock__zoom-pct" id="zoom-pct" aria-hidden="true">100%</span>
-              <button type="button" class="btn btn--ghost" id="btn-zoom-reset" disabled data-i18n="perler.zoom.reset"></button>
-            </span>
+          <div class="craft-dock__chrome">
+            <div class="craft-dock__preview-toggles" id="preview-toggles" role="group">
+              <button type="button" class="btn btn--ghost" id="btn-show-codes" disabled data-i18n="perler.codes.toggle" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost" id="btn-rm-bg" disabled data-i18n="perler.rmBg.toggle" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost craft-dock__edit-only" id="btn-cutout" disabled data-i18n="perler.cutout.toggle" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost craft-dock__edit-only" id="btn-erase" disabled data-i18n="perler.erase.toggle" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost craft-dock__edit-only" id="btn-erase-fill" disabled data-i18n="perler.erase.fill" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost" id="btn-mirror" disabled data-i18n="perler.mirror.toggle" aria-pressed="false"></button>
+              <button type="button" class="btn btn--ghost" id="btn-pan" disabled data-i18n="perler.pan.toggle" aria-pressed="false"></button>
+              <span class="craft-dock__zoom-group" role="group" aria-label="zoom">
+                <input type="range" id="zoom-slider" class="craft-dock__zoom-slider" min="25" max="400" step="1" value="100" disabled />
+                <span class="craft-dock__zoom-pct" id="zoom-pct" aria-hidden="true">100%</span>
+                <button type="button" class="btn btn--ghost" id="btn-zoom-reset" disabled data-i18n="perler.zoom.reset"></button>
+              </span>
+            </div>
+            <div class="craft-dock__end">
+              <div class="craft-draft" id="craft-draft-wrap">
+                <button type="button" class="btn btn--ghost craft-draft__toggle" id="btn-draft-toggle" disabled data-i18n="perler.draft.title" aria-expanded="false" aria-controls="draft-panel">草稿</button>
+                <div class="craft-draft__flyout" id="draft-panel" hidden>
+                  <p class="notice draft-panel__hint" data-i18n="perler.draft.hint"></p>
+                  <div class="draft-panel__actions">
+                    <button type="button" class="btn btn--ghost" id="btn-draft-save" disabled data-i18n="perler.draft.save"></button>
+                  </div>
+                  <p class="draft-panel__bound" id="draft-bound" hidden></p>
+                  <ul class="draft-list" id="draft-list"></ul>
+                </div>
+              </div>
+              <button type="button" class="btn btn--ghost btn--craft" id="btn-craft" disabled data-i18n="perler.craft.toggle"></button>
+            </div>
           </div>
           <div class="cutout-dock" id="cutout-dock" hidden>
             <p class="cutout-dock__hint" data-i18n="perler.cutout.hint"></p>
@@ -260,46 +294,35 @@
               <button type="button" class="btn btn--ghost" id="btn-cutout-cancel" data-i18n="perler.cutout.cancel"></button>
             </div>
           </div>
-            <div class="craft-dock__tools" id="craft-dock" hidden>
-            <div class="craft-dock__modes" role="group">
-              <button type="button" class="btn btn--ghost craft-mode is-active" data-craft-mode="color" data-i18n="perler.craft.byColor"></button>
-              <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="row" data-i18n="perler.craft.byRow"></button>
-              <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="column" data-i18n="perler.craft.byCol"></button>
-              <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="zone" data-i18n="perler.craft.byZone"></button>
-            </div>
-            <div class="craft-dock__row" id="craft-row-ctrl" hidden>
-              <button type="button" class="btn btn--ghost" id="craft-row-prev" data-i18n="perler.craft.rangePrev"></button>
-              <span class="craft-dock__row-label" id="craft-row-label">1 / 1</span>
-              <button type="button" class="btn btn--ghost" id="craft-row-next" data-i18n="perler.craft.rangeNext"></button>
-            </div>
-            <div class="craft-dock__mirrors" role="group" id="craft-mirror-ctrl" hidden>
-              <button type="button" class="btn btn--ghost" id="btn-craft-mirror-h" data-i18n="perler.craft.mirrorH" aria-pressed="false"></button>
-              <button type="button" class="btn btn--ghost" id="btn-craft-mirror-v" data-i18n="perler.craft.mirrorV" aria-pressed="false"></button>
-            </div>
-            <div class="craft-step" id="craft-step" hidden>
-              <span class="craft-step__tag" data-i18n="perler.craft.stepTag">逐颗</span>
-              <button type="button" class="btn btn--ghost craft-step__nav" id="craft-step-prev" aria-label="prev bead" data-i18n-aria="perler.craft.stepPrev" title="">◀</button>
-              <div class="craft-step__focus" id="craft-step-focus" aria-live="polite">
-                <span class="craft-step__coord" id="craft-step-coord">—</span>
-                <span class="craft-step__meta" id="craft-step-meta"></span>
+          <div class="craft-dock__tools" id="craft-dock" hidden>
+            <div class="craft-dock__guide">
+              <div class="craft-dock__modes" role="group" aria-label="craft guide">
+                <button type="button" class="btn btn--ghost craft-mode is-active" data-craft-mode="color" data-i18n="perler.craft.byColor"></button>
+                <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="row" data-i18n="perler.craft.byRow"></button>
+                <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="column" data-i18n="perler.craft.byCol"></button>
+                <button type="button" class="btn btn--ghost craft-mode" data-craft-mode="zone" data-i18n="perler.craft.byZone"></button>
               </div>
-              <button type="button" class="btn btn--ghost craft-step__nav craft-step__nav--primary" id="craft-step-next" aria-label="next bead" data-i18n-aria="perler.craft.stepNext" title="">下一颗 ▶</button>
+              <div class="craft-dock__row" id="craft-row-ctrl" hidden>
+                <button type="button" class="btn btn--ghost" id="craft-row-prev" data-i18n="perler.craft.rangePrev"></button>
+                <span class="craft-dock__row-label" id="craft-row-label">1 / 1</span>
+                <button type="button" class="btn btn--ghost" id="craft-row-next" data-i18n="perler.craft.rangeNext"></button>
+              </div>
+              <div class="craft-dock__mirrors" role="group" id="craft-mirror-ctrl" hidden>
+                <button type="button" class="btn btn--ghost" id="btn-craft-mirror-h" data-i18n="perler.craft.mirrorH" aria-pressed="false"></button>
+                <button type="button" class="btn btn--ghost" id="btn-craft-mirror-v" data-i18n="perler.craft.mirrorV" aria-pressed="false"></button>
+              </div>
             </div>
-            <button type="button" class="btn btn--ghost is-active" id="btn-craft-axis" data-i18n="perler.craft.axis" aria-pressed="true"></button>
-          </div>
-          <div class="craft-dock__end">
-            <div class="craft-draft" id="craft-draft-wrap">
-              <button type="button" class="btn btn--ghost craft-draft__toggle" id="btn-draft-toggle" disabled data-i18n="perler.draft.title" aria-expanded="false" aria-controls="draft-panel">草稿</button>
-              <div class="craft-draft__flyout" id="draft-panel" hidden>
-                <p class="notice draft-panel__hint" data-i18n="perler.draft.hint"></p>
-                <div class="draft-panel__actions">
-                  <button type="button" class="btn btn--ghost" id="btn-draft-save" disabled data-i18n="perler.draft.save"></button>
+            <div class="craft-dock__place">
+              <div class="craft-step" id="craft-step" hidden>
+                <button type="button" class="btn btn--ghost craft-step__nav" id="craft-step-prev" aria-label="prev bead" data-i18n-aria="perler.craft.stepPrev" title="">◀</button>
+                <div class="craft-step__focus" id="craft-step-focus" aria-live="polite">
+                  <span class="craft-step__coord" id="craft-step-coord">—</span>
+                  <span class="craft-step__meta" id="craft-step-meta"></span>
                 </div>
-                <p class="draft-panel__bound" id="draft-bound" hidden></p>
-                <ul class="draft-list" id="draft-list"></ul>
+                <button type="button" class="btn btn--ghost craft-step__nav craft-step__nav--primary" id="craft-step-next" aria-label="next bead" data-i18n-aria="perler.craft.stepNext" title="">下一颗 ▶</button>
               </div>
+              <button type="button" class="btn btn--ghost" id="btn-craft-axis" data-i18n="perler.craft.axis" aria-pressed="true"></button>
             </div>
-            <button type="button" class="btn btn--ghost btn--craft" id="btn-craft" disabled data-i18n="perler.craft.toggle"></button>
           </div>
         </div>
         <p class="banner-import" id="import-banner" hidden data-i18n="handoff.imported"></p>
@@ -376,34 +399,36 @@
             <p class="notice" data-i18n="perler.export.hint"></p>
             <details class="adv" id="print-settings">
               <summary data-i18n="perler.print.settings"></summary>
-              <div class="adv__body adv__body--cols">
-                <div class="field">
-                  <label for="print-tile" data-i18n="perler.print.tile"></label>
-                  <select id="print-tile">
-                    <option value="0" selected data-i18n="perler.print.tile0"></option>
-                    <option value="29" data-i18n="perler.print.tile29"></option>
-                    <option value="58" data-i18n="perler.print.tile58"></option>
-                  </select>
+              <div class="adv__body print-settings__body">
+                <div class="print-settings__row">
+                  <div class="field">
+                    <label for="print-tile" data-i18n="perler.print.tile"></label>
+                    <select id="print-tile">
+                      <option value="0" selected data-i18n="perler.print.tile0"></option>
+                      <option value="29" data-i18n="perler.print.tile29"></option>
+                      <option value="58" data-i18n="perler.print.tile58"></option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="pitch-family" data-i18n="perler.pitch.family"></label>
+                    <select id="pitch-family">
+                      <option value="midi" selected data-i18n="perler.pitch.midi"></option>
+                      <option value="mini" data-i18n="perler.pitch.mini"></option>
+                    </select>
+                  </div>
                 </div>
-                <div class="field">
-                  <label><input type="checkbox" id="print-major" checked /> <span data-i18n="perler.print.major"></span></label>
+                <div class="print-settings__row print-settings__row--pitch">
+                  <div class="field">
+                    <label for="print-pitch"><span data-i18n="perler.print.pitch"></span></label>
+                    <input id="print-pitch" type="number" min="2.5" max="10" step="0.1" value="5" />
+                  </div>
                 </div>
-                <div class="field">
-                  <label><input type="checkbox" id="print-cell-codes" /> <span data-i18n="perler.print.cellCodes"></span></label>
-                </div>
-                <div class="field">
-                  <label for="pitch-family" data-i18n="perler.pitch.family"></label>
-                  <select id="pitch-family">
-                    <option value="midi" selected data-i18n="perler.pitch.midi"></option>
-                    <option value="mini" data-i18n="perler.pitch.mini"></option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="print-pitch"><span data-i18n="perler.print.pitch"></span></label>
-                  <input id="print-pitch" type="number" min="2.5" max="10" step="0.1" value="5" />
+                <div class="print-settings__checks">
+                  <label class="print-settings__check"><input type="checkbox" id="print-major" checked /> <span data-i18n="perler.print.major"></span></label>
+                  <label class="print-settings__check"><input type="checkbox" id="print-cell-codes" /> <span data-i18n="perler.print.cellCodes"></span></label>
                 </div>
                 <p class="notice notice--warn" id="pitch-warn" hidden data-i18n="perler.pitch.warn"></p>
-                <p class="notice" data-i18n="perler.print.hint"></p>
+                <p class="notice print-settings__hint" data-i18n="perler.print.hint"></p>
               </div>
             </details>
             <!-- paint handoff removed in OSS build -->
@@ -511,12 +536,19 @@
     <div class="export-pick__card" role="dialog" aria-modal="true" aria-labelledby="export-pick-title">
       <p class="export-pick__title" id="export-pick-title" data-i18n="perler.export.pickTitle"></p>
       <p class="export-pick__hint" data-i18n="perler.export.pickHint"></p>
+      <div class="field export-pick__style">
+        <label for="export-pick-style" data-i18n="perler.view"></label>
+        <select id="export-pick-style">
+          <option value="beads" selected data-i18n="perler.view.beads"></option>
+          <option value="pixels" data-i18n="perler.view.pixels"></option>
+        </select>
+      </div>
       <label class="export-pick__opt">
         <input type="checkbox" id="export-pick-legend" checked />
         <span data-i18n="perler.export.optLegend"></span>
       </label>
       <label class="export-pick__opt">
-        <input type="checkbox" id="export-pick-grid" checked />
+        <input type="checkbox" id="export-pick-grid" />
         <span data-i18n="perler.export.optGrid"></span>
       </label>
       <div class="export-pick__ink" id="export-pick-ink-wrap">
@@ -579,6 +611,18 @@
       font-size: 0.82rem;
       line-height: 1.4;
       opacity: 0.85;
+    }
+    .export-pick__style {
+      margin: 0 0 12px;
+    }
+    .export-pick__style label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.82rem;
+      opacity: 0.9;
+    }
+    .export-pick__style select {
+      width: 100%;
     }
     .export-pick__opt {
       display: flex;
@@ -827,6 +871,11 @@
       const tplGrid = document.getElementById("tpl-grid");
       const editPanel = document.getElementById("edit-panel");
       const editSwatches = document.getElementById("edit-swatches");
+      const editBrushBar = document.getElementById("edit-brush-bar");
+      const editBrushChip = document.getElementById("edit-brush-chip");
+      const editBrushCode = document.getElementById("edit-brush-code");
+      const editBrushName = document.getElementById("edit-brush-name");
+      const editBrushFind = document.getElementById("edit-brush-find");
       const btnEditUndo = document.getElementById("btn-edit-undo");
       const sparseThrEl = document.getElementById("sparse-thr");
       const btnSparseMerge = document.getElementById("btn-sparse-merge");
@@ -995,7 +1044,11 @@
       }
 
       function applyRmBgFromBase() {
-        if (!lastQuantizedBase || !lastPalette) return;
+        if (!lastPalette) return;
+        /* Manual paint/bucket/replace only mutated lastQuantized — fold those
+           beads into base so Remove BG / tol use the board you see now. */
+        if (lastQuantized) syncBaseFromCurrentBoard();
+        if (!lastQuantizedBase) return;
         if (rmBgOn && FGImage.removeBackgroundEdgeFlood) {
           const tol = rmBgTolEl ? Math.max(8, Math.min(96, +rmBgTolEl.value || 36)) : 36;
           lastQuantized = FGImage.removeBackgroundEdgeFlood(lastQuantizedBase, {
@@ -1061,6 +1114,7 @@
         lastQuantizedBase = FGImage.applyKeepMask
           ? FGImage.applyKeepMask(lastQuantizedBase, cutoutMask)
           : lastQuantizedBase;
+        lastQuantized = null; /* base already cut — skip stale sync */
         clearEraseMask();
         exitCutoutMode(false);
         applyRmBgFromBase();
@@ -1314,6 +1368,10 @@
         craftViewport.classList.toggle(
           "is-erase-armed",
           !!lastQuantized && editArmed && isEraseTool(editTool) && !panArmed
+        );
+        craftViewport.classList.toggle(
+          "is-eyedrop-armed",
+          !!lastQuantized && editArmed && editTool === "eyedrop" && !panArmed
         );
       }
 
@@ -2197,8 +2255,7 @@
           craftStepNext.title = t("perler.craft.stepNextHint");
           craftStepNext.setAttribute("aria-label", t("perler.craft.stepNext"));
         }
-        const tagEl = craftStepEl.querySelector(".craft-step__tag");
-        if (tagEl) tagEl.textContent = t("perler.craft.stepTag");
+        /* step tag removed from dock layout — coord/meta carry the status */
 
         const placedN = craftPlaced.size;
         const beadTotal = opaqueBeadTotal();
@@ -2537,8 +2594,8 @@
           }
           return data;
         }
-        const needOverlay =
-          craftMode || hasColorFocus() || craftPlaced.size > 0;
+        /* Placed / range fog only while 跟摆 — keep progress data, hide overlays. */
+        const needOverlay = craftMode || hasColorFocus();
         let data = needOverlay ? buildCraftImageData() : lastQuantized;
         if (!data) return null;
         if (mirrorH && FGImage.mirrorImageDataH) {
@@ -3219,10 +3276,41 @@
         if (!lastQuantized) return;
         undoStack.push({
           img: cloneImageData(lastQuantized),
+          base: lastQuantizedBase ? cloneImageData(lastQuantizedBase) : null,
           mask: cloneEraseMask(),
         });
         while (undoStack.length > UNDO_MAX) undoStack.shift();
         if (btnEditUndo) btnEditUndo.disabled = false;
+      }
+
+      /** Bake opaque beads from the current board into base (keep paper under holes). */
+      function syncBaseFromCurrentBoard() {
+        if (!lastQuantized) return;
+        if (
+          !lastQuantizedBase ||
+          lastQuantizedBase.width !== lastQuantized.width ||
+          lastQuantizedBase.height !== lastQuantized.height
+        ) {
+          lastQuantizedBase = cloneImageData(lastQuantized);
+          return;
+        }
+        const src = lastQuantized.data;
+        const out = new ImageData(
+          new Uint8ClampedArray(lastQuantizedBase.data),
+          lastQuantized.width,
+          lastQuantized.height
+        );
+        const bd = out.data;
+        const n = lastQuantized.width * lastQuantized.height;
+        for (let p = 0; p < n; p++) {
+          const i = p * 4;
+          if (src[i + 3] < 16) continue;
+          bd[i] = src[i];
+          bd[i + 1] = src[i + 1];
+          bd[i + 2] = src[i + 2];
+          bd[i + 3] = src[i + 3];
+        }
+        lastQuantizedBase = out;
       }
 
       function setEditTool(tool, opts) {
@@ -3252,6 +3340,49 @@
         return FGPalettes.byId("mard-221");
       }
 
+      function brushMetaText(c) {
+        if (!c) return { code: "", name: "" };
+        const code = FGPalettes.colorCode(c) || "";
+        let name = FGPalettes.colorName(c) || "";
+        if (name && code && name.toLowerCase() === String(code).toLowerCase()) {
+          name = "";
+        }
+        return { code: code, name: name };
+      }
+
+      function showBrushMeta(c, opts) {
+        const o = opts || {};
+        if (!editBrushBar) return;
+        if (!c) {
+          editBrushBar.hidden = true;
+          return;
+        }
+        editBrushBar.hidden = false;
+        editBrushBar.classList.toggle("is-preview", !!o.preview);
+        if (editBrushChip) editBrushChip.style.background = c.hex || "transparent";
+        const meta = brushMetaText(c);
+        if (editBrushCode) {
+          editBrushCode.textContent = meta.code || "—";
+        }
+        if (editBrushName) {
+          editBrushName.textContent = meta.name;
+          editBrushName.hidden = !meta.name;
+        }
+      }
+
+      function filterEditSwatches() {
+        if (!editSwatches || !editBrushFind) return;
+        const q = (editBrushFind.value || "").trim().toLowerCase();
+        editSwatches.querySelectorAll(".edit-swatch").forEach((b) => {
+          if (!q) {
+            b.hidden = false;
+            return;
+          }
+          const hay = (b.dataset.find || "").toLowerCase();
+          b.hidden = hay.indexOf(q) < 0;
+        });
+      }
+
       function paintEditSwatches() {
         const editPal = getEditPalette();
         if (!editSwatches || !editPal) return;
@@ -3262,17 +3393,45 @@
         editPal.colors.forEach((c) => {
           const b = document.createElement("button");
           b.type = "button";
-          b.className = "edit-swatch" + (brushColor && brushColor.id === c.id ? " is-active" : "");
+          b.className =
+            "edit-swatch" + (brushColor && brushColor.id === c.id ? " is-active" : "");
           b.style.background = c.hex;
-          b.title = FGPalettes.legendLabel(c);
-          b.setAttribute("aria-label", FGPalettes.legendLabel(c));
+          const label = FGPalettes.legendLabel(c);
+          const code = FGPalettes.colorCode(c) || "";
+          const name = FGPalettes.colorName(c) || "";
+          b.title = label;
+          b.setAttribute("aria-label", label);
+          b.dataset.find = [code, name, c.hex || "", String(c.id != null ? c.id : "")]
+            .join(" ")
+            .trim();
           b.addEventListener("click", () => {
             brushColor = c;
-            if (isEraseTool(editTool) || !editArmed) setEditTool("paint");
+            if (
+              isEraseTool(editTool) ||
+              editTool === "eyedrop" ||
+              !editArmed
+            ) {
+              setEditTool("paint");
+            }
+            showBrushMeta(brushColor);
             paintEditSwatches();
           });
+          b.addEventListener("mouseenter", () => showBrushMeta(c, { preview: true }));
+          b.addEventListener("focus", () => showBrushMeta(c, { preview: true }));
+          b.addEventListener("mouseleave", () => showBrushMeta(brushColor));
+          b.addEventListener("blur", () => showBrushMeta(brushColor));
           editSwatches.appendChild(b);
         });
+        showBrushMeta(brushColor);
+        filterEditSwatches();
+        const active = editSwatches.querySelector(".edit-swatch.is-active");
+        if (active && active.scrollIntoView) {
+          try {
+            active.scrollIntoView({ block: "nearest", inline: "nearest" });
+          } catch (_) {
+            /* ignore */
+          }
+        }
       }
 
       function syncEditPanel(show) {
@@ -3568,9 +3727,9 @@
         return out;
       }
 
-      /** Hatch / dim mask on placed beads (visual coords; canvas is already mirrored). */
+      /** Hatch / checkmarks on placed beads — only in 跟摆 mode. */
       function drawPlacedOverlay(cell, beads) {
-        if (!craftPlaced.size || !lastQuantized || !canvas) return;
+        if (!craftMode || !craftPlaced.size || !lastQuantized || !canvas) return;
         const gap = beads ? 1 : 0;
         const step = cell + gap;
         const ctx = canvas.getContext("2d");
@@ -3782,8 +3941,7 @@
             const label = FGPalettes.legendLabel(c);
             const miss = owned && !owned.has(c.id);
             const focus = colorFocusOn && colorIdEq(craftFocusId, c.id);
-            const done =
-              (craftMode || craftPlaced.size > 0) && craftDoneIds.has(c.id);
+            const done = craftMode && craftDoneIds.has(c.id);
             const cls =
               "legend__row legend__row--pick" +
               (miss ? " legend__row--missing" : "") +
@@ -3937,6 +4095,7 @@
         applyingPreset = false;
         syncNField();
         lastPalette = pal;
+        lastQuantized = null; /* avoid syncing stale board into new base */
         lastQuantizedBase = cloneImageData(imageData);
         lastSide = imageData.width;
         clearEraseMask();
@@ -3984,6 +4143,21 @@
 
       function writePixelTracked(x, y, r, g, b, a) {
         writePixel(x, y, r, g, b, a);
+        /* Keep base in sync for opaque edits so Remove BG does not revert them.
+           Erase stays on eraseMask + lastQuantized only (base keeps paper). */
+        if (
+          a >= 16 &&
+          lastQuantizedBase &&
+          lastQuantizedBase.width === lastQuantized.width &&
+          lastQuantizedBase.height === lastQuantized.height
+        ) {
+          const bi = (y * lastQuantizedBase.width + x) * 4;
+          const bd = lastQuantizedBase.data;
+          bd[bi] = r;
+          bd[bi + 1] = g;
+          bd[bi + 2] = b;
+          bd[bi + 3] = a;
+        }
         if (a < 16) markEraseCell(x, y, true);
         else markEraseCell(x, y, false);
       }
@@ -4061,10 +4235,80 @@
         return { x, y };
       }
 
+      function colorRgb(c) {
+        if (!c) return null;
+        if (c.rgb && c.rgb.length >= 3) return c.rgb;
+        if (c.hex && FGPalettes.hexToRgb) return FGPalettes.hexToRgb(c.hex);
+        return null;
+      }
+
+      /** Map a board bead RGB onto the edit swatch palette. */
+      function resolveBrushFromRgb(r, g, b) {
+        const editPal = getEditPalette();
+        if (!editPal || !editPal.colors || !editPal.colors.length) return null;
+        const exact = (colors) =>
+          colors.find((c) => {
+            const rgb = colorRgb(c);
+            return rgb && rgb[0] === r && rgb[1] === g && rgb[2] === b;
+          });
+        let hit = exact(editPal.colors);
+        if (hit) return hit;
+        if (lastPalette && lastPalette.colors) {
+          const board = exact(lastPalette.colors);
+          if (board) {
+            hit =
+              editPal.colors.find((c) => c.id === board.id) ||
+              editPal.colors.find(
+                (c) =>
+                  (c.hex || "").toLowerCase() === (board.hex || "").toLowerCase()
+              );
+            if (hit) return hit;
+          }
+        }
+        if (FGImage.nearestColor) {
+          const withRgb = editPal.colors.map((c) => ({
+            id: c.id,
+            hex: c.hex,
+            code: c.code,
+            name: c.name,
+            rgb: colorRgb(c) || [0, 0, 0],
+          }));
+          const near = FGImage.nearestColor(r, g, b, withRgb);
+          return (
+            editPal.colors.find((c) => c.id === near.id) ||
+            editPal.colors.find(
+              (c) => (c.hex || "").toLowerCase() === (near.hex || "").toLowerCase()
+            ) ||
+            near
+          );
+        }
+        return editPal.colors[0];
+      }
+
+      function pickBrushFromCell(x, y) {
+        if (!lastQuantized) return false;
+        const p = readPixel(x, y);
+        if (p.a < 16) return false;
+        const next = resolveBrushFromRgb(p.r, p.g, p.b);
+        if (!next) return false;
+        brushColor = next;
+        editTool = "paint";
+        editArmed = true;
+        paintEditSwatches();
+        syncEditChrome();
+        FGTool.track("perler", "edit_eyedrop");
+        return true;
+      }
+
       function applyEditAt(x, y, opts) {
         opts = opts || {};
         const stroke = !!opts.stroke;
         if (!lastQuantized) return;
+        if (editTool === "eyedrop") {
+          if (stroke) return;
+          pickBrushFromCell(x, y);
+          return;
+        }
         if (!isEraseTool(editTool) && !brushColor) return;
         const { r, g, b, a } = brushRgba();
 
@@ -4116,6 +4360,7 @@
         const snap = undoStack.pop();
         if (snap && snap.img) {
           lastQuantized = snap.img;
+          if (snap.base) lastQuantizedBase = snap.base;
           eraseMask = snap.mask ? new Uint8Array(snap.mask) : null;
         } else {
           /* legacy flat ImageData entries */
@@ -4145,10 +4390,7 @@
           return;
         }
         lastQuantized = result.imageData;
-        if (lastQuantizedBase) {
-          const baseMerged = FGImage.mergeSparseColors(lastQuantizedBase, thr);
-          if (baseMerged.cells) lastQuantizedBase = baseMerged.imageData;
-        }
+        syncBaseFromCurrentBoard();
         FGTool.track("perler", "sparse_merge", { thr: thr, n: result.mergedColors, c: result.cells });
         if (tip) {
           tip.removeAttribute("data-i18n");
@@ -4169,7 +4411,7 @@
 
       /** Grid cols×rows from side slider; follows crop aspect when框选 is on. */
       function boardGridForSide(side) {
-        const n = Math.max(32, Math.min(144, side | 0 || 96));
+        const n = Math.max(29, Math.min(144, side | 0 || 96));
         if (
           sourceCropRect &&
           sourceCropRect.w > 0 &&
@@ -4188,7 +4430,7 @@
       function render() {
         if (!sourceImg) return;
         if (cutoutMode) exitCutoutMode(false);
-        const side = Math.max(32, Math.min(144, +sideEl.value || 96));
+        const side = Math.max(29, Math.min(144, +sideEl.value || 96));
         sideEl.value = String(side);
         const grid = boardGridForSide(side);
         const cols = grid.cols;
@@ -4202,6 +4444,7 @@
         satVal.textContent = sat.toFixed(2);
 
         const dither = ditherEl.value;
+        const isSmallBoard = dither === "small-board";
         function fitBoard(c, r, fitMode, o) {
           if (FGImage.fitImageToGrid) {
             return FGImage.fitImageToGrid(sourceImg, c, r, fitMode, o);
@@ -4213,7 +4456,7 @@
          * Smooth shrink invents AA mud → nearest bead jumps (even with dither off).
          */
         let isFlatArt = false;
-        if (!fromTemplate && FGBeadFsV2 && FGBeadFsV2.detectFlatArt) {
+        if (!fromTemplate && !isSmallBoard && FGBeadFsV2 && FGBeadFsV2.detectFlatArt) {
           try {
             const probeGrid = boardGridForSide(96);
             const probe = fitBoard(
@@ -4232,13 +4475,29 @@
             isFlatArt = false;
           }
         }
+        /*
+         * 小图纸: do NOT nearest-shrink to final grid then "repair" lines.
+         * Fit to 3× grid → hard quantize → mode-vote each bead (pixel-art reduce).
+         */
+        const smallScale = isSmallBoard ? 4 : 1;
         let { data } = fitBoard(
-          cols,
-          rows,
+          cols * smallScale,
+          rows * smallScale,
           fitEl.value,
-          fitOpts({ smooth: !fromTemplate && !isFlatArt })
+          fitOpts({
+            smooth: isSmallBoard
+              ? false
+              : !fromTemplate && !isFlatArt,
+          })
         );
-        if (!fromTemplate && !isFlatArt && (contrast !== 1 || sat !== 1)) {
+        if (isSmallBoard) {
+          const cBoost = Math.min(1.25, Math.max(contrast, 1) * 1.08);
+          const sBoost = Math.min(1.15, Math.max(sat, 1) * 1.04);
+          data = FGImage.adjustImageData(data, {
+            contrast: cBoost,
+            saturation: sBoost,
+          });
+        } else if (!fromTemplate && !isFlatArt && (contrast !== 1 || sat !== 1)) {
           data = FGImage.adjustImageData(data, { contrast, saturation: sat });
         }
         if (cleanSkipWhiteEl && cleanSkipWhiteEl.checked && FGImage.clearNearWhite) {
@@ -4263,6 +4522,7 @@
         const useCartoonV2 =
           FGBeadFsV2 &&
           dither !== "handlike" &&
+          !isSmallBoard &&
           !isOutlineFs &&
           (dither === "fs-v2" || isFlatArt);
         if (useCartoonV2) {
@@ -4301,6 +4561,27 @@
           quantized = FGBeadHandlike.quantizeImageData(data, palette.colors, {
             maxColors: maxColors,
           });
+        } else if (isSmallBoard) {
+          /* 4× hard blocks → ink-weighted mode vote → drop lone speckles. */
+          quantized = FGImage.quantizeImageData(data, palette.colors, {
+            dither: "none",
+            ditherStrength: 1,
+            maxColors: maxColors,
+          });
+          if (FGImage.downsampleModeImageData) {
+            quantized = FGImage.downsampleModeImageData(quantized, cols, rows, {
+              inkWeight: 2,
+              inkLuma: 48,
+            });
+          }
+          if (FGImage.despikeIsolatedBeads) {
+            quantized = FGImage.despikeIsolatedBeads(quantized);
+          }
+          FGTool.track("perler", "small_board");
+          if (tip) {
+            tip.setAttribute("data-i18n", "perler.tip.smallBoard");
+            tip.textContent = t("perler.tip.smallBoard");
+          }
         } else {
           const d =
             dither === "none"
@@ -4317,16 +4598,24 @@
         /* Majority smooth eats 1-bead black outlines — never apply after outline-fs. */
         if (
           !isOutlineFs &&
+          !isSmallBoard &&
           cleanSmoothEl &&
           cleanSmoothEl.checked &&
           FGImage.smoothMajorityImageData
         ) {
           quantized = FGImage.smoothMajorityImageData(quantized);
         }
-        if (!isFlatArt && dither !== "fs-v2" && !isOutlineFs && tip) {
+        if (
+          !isFlatArt &&
+          dither !== "fs-v2" &&
+          !isOutlineFs &&
+          !isSmallBoard &&
+          tip
+        ) {
           tip.setAttribute("data-i18n", tipKey);
           tip.textContent = t(tipKey);
         }
+        lastQuantized = null; /* fresh render — do not fold previous board into base */
         lastQuantizedBase = quantized;
         lastPalette = palette;
         craftRow = 0;
@@ -4379,8 +4668,8 @@
 
       /**
        * Render pattern-only canvas (no color table).
-       * cellCodes: overlay codes on cells; hiRes: fixed large cell;
-       * withGrid: force flat cells + grid lines (not bead circles).
+       * cellCodes: overlay codes; hiRes: fixed large cell;
+       * style: "beads" | "pixels" (default beads); withGrid overlays lines.
        */
       function renderExportCanvas(opts) {
         const o = opts || {};
@@ -4393,23 +4682,27 @@
           ? codesExportCellFor(cols, rows)
           : Math.max(4, Math.min(20, +cellEl.value || 8));
         const withGrid = !!o.withGrid;
-        const beads = !withGrid && viewEl.value === "beads";
+        const beads = o.style !== "pixels";
         const off = document.createElement("canvas");
-        if (withGrid && FGImage.drawPrintCellGrid) {
-          const ink = exportGridColors(o.gridInk);
+        const ink = withGrid ? exportGridColors(o.gridInk) : null;
+        if (beads) {
+          FGImage.drawBeadGrid(off, data, cell, 1, { bg: "#ffffff" });
+          if (withGrid && ink) {
+            FGImage.drawGridOverlay(off, cols, rows, cell, ink.minorColor, {
+              gap: 1,
+              majorEvery: 0,
+              majorColor: ink.majorColor,
+            });
+          }
+        } else if (withGrid && FGImage.drawPrintCellGrid) {
           FGImage.drawPrintCellGrid(off, data, cell, {
             bg: "#ffffff",
             majorEvery: 0,
             minorColor: ink.minorColor,
             majorColor: ink.majorColor,
           });
-        } else if (beads) {
-          FGImage.drawBeadGrid(off, data, cell, 1);
         } else {
           FGImage.drawImageData(off, data, cell);
-          if (gridEl && gridEl.checked) {
-            FGImage.drawGridOverlay(off, cols, rows, cell);
-          }
         }
         if (o.cellCodes && FGImage.drawCellCodeOverlay) {
           FGImage.drawCellCodeOverlay(off, data, cell, {
@@ -4442,6 +4735,7 @@
         if (!data || !lastPalette || !FGImage.composePrintSheet) return null;
         const cellCodes = !!o.cellCodes;
         const withGrid = !!o.withGrid;
+        const style = o.style === "pixels" ? "pixels" : "beads";
         const ink = withGrid ? exportGridColors(o.gridInk) : null;
         const cell = cellCodes
           ? Math.min(28, codesExportCellFor(data.width, data.height))
@@ -4453,6 +4747,7 @@
           cellCodes: cellCodes,
           labelFn: cellCodeLabel,
           printGrid: withGrid,
+          beadStyle: style,
           cell: cell,
           alignMarks: false,
           majorEvery: 0,
@@ -4476,21 +4771,27 @@
         if (!lastQuantized || !lastPalette) return;
         const withLegend = !!o.withLegend;
         const withGrid = !!o.withGrid;
+        const style = o.style === "pixels" ? "pixels" : "beads";
         const gridInk = o.gridInk;
         FGTool.trackExport(
           "perler",
-          "png" + (withLegend ? "_legend" : "") + (withGrid ? "_grid" : "")
+          "png_" +
+            style +
+            (withLegend ? "_legend" : "") +
+            (withGrid ? "_grid" : "")
         );
         const off = withLegend
           ? buildExportSheet({
               cellCodes: false,
               withGrid: withGrid,
+              style: style,
               gridInk: gridInk,
             })
           : renderExportCanvas({
               cellCodes: false,
               hiRes: false,
               withGrid: withGrid,
+              style: style,
               gridInk: gridInk,
             });
         if (!off) return;
@@ -4505,21 +4806,27 @@
         if (!lastQuantized || !lastPalette) return;
         const withLegend = !!o.withLegend;
         const withGrid = !!o.withGrid;
+        const style = o.style === "pixels" ? "pixels" : "beads";
         const gridInk = o.gridInk;
         FGTool.trackExport(
           "perler",
-          "png_codes" + (withLegend ? "_legend" : "") + (withGrid ? "_grid" : "")
+          "png_codes_" +
+            style +
+            (withLegend ? "_legend" : "") +
+            (withGrid ? "_grid" : "")
         );
         const off = withLegend
           ? buildExportSheet({
               cellCodes: true,
               withGrid: withGrid,
+              style: style,
               gridInk: gridInk,
             })
           : renderExportCanvas({
               cellCodes: true,
               hiRes: true,
               withGrid: withGrid,
+              style: style,
               gridInk: gridInk,
             });
         if (!off) return;
@@ -4844,6 +5151,10 @@
         });
       });
       if (btnEditUndo) btnEditUndo.addEventListener("click", undoEdit);
+      if (editBrushFind) {
+        editBrushFind.addEventListener("input", filterEditSwatches);
+        editBrushFind.addEventListener("search", filterEditSwatches);
+      }
       if (btnSparseMerge) btnSparseMerge.addEventListener("click", mergeSparseEdit);
       if (sparseThrEl) {
         sparseThrEl.addEventListener("change", () => {
@@ -5474,6 +5785,7 @@
 
       const pickLegendEl = document.getElementById("export-pick-legend");
       const pickGridEl = document.getElementById("export-pick-grid");
+      const pickStyleEl = document.getElementById("export-pick-style");
       const pickInkEl = document.getElementById("export-pick-ink");
       const pickInkWrap = document.getElementById("export-pick-ink-wrap");
       const pickInkLabel = document.getElementById("export-pick-ink-label");
@@ -5536,8 +5848,12 @@
         if (!lastQuantized || !exportPick) return;
         if (kind !== "pattern" && kind !== "codes") return;
         pendingExportKind = kind;
+        if (pickStyleEl) {
+          pickStyleEl.value =
+            viewEl && viewEl.value === "pixels" ? "pixels" : "beads";
+        }
         if (pickLegendEl) pickLegendEl.checked = true;
-        if (pickGridEl) pickGridEl.checked = true;
+        if (pickGridEl) pickGridEl.checked = false;
         if (pickInkEl) pickInkEl.value = "50";
         syncExportInkUi();
         exportPick.hidden = false;
@@ -5550,11 +5866,14 @@
         const kind = pendingExportKind;
         const withLegend = !!(pickLegendEl && pickLegendEl.checked);
         const withGrid = !!(pickGridEl && pickGridEl.checked);
+        const style =
+          pickStyleEl && pickStyleEl.value === "pixels" ? "pixels" : "beads";
         const gridInk = clampGridInk(pickInkEl && pickInkEl.value);
         closeExportPick();
         const opts = {
           withLegend: withLegend,
           withGrid: withGrid,
+          style: style,
           gridInk: gridInk,
         };
         if (kind === "pattern") exportPatternPng(opts);

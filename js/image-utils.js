@@ -384,6 +384,294 @@
     return out;
   }
 
+  function lumaAt(d, i) {
+    return 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+  }
+
+  /**
+   * Before quantize on tiny boards: thicken near-black strokes by 1px so
+   * Q-version outlines do not break into dashed beads.
+   */
+  function thickenDarkForSmallBoard(imageData, opts) {
+    const o = opts || {};
+    const alphaCut = o.alphaCut != null ? o.alphaCut | 0 : 16;
+    const lumaCut = o.lumaCut != null ? +o.lumaCut : 52;
+    const w = imageData.width;
+    const h = imageData.height;
+    const src = imageData.data;
+    const n = w * h;
+    const dark = new Uint8Array(n);
+    for (let p = 0; p < n; p++) {
+      const i = p * 4;
+      if (src[i + 3] < alphaCut) continue;
+      if (lumaAt(src, i) <= lumaCut) dark[p] = 1;
+    }
+    const grown = new Uint8Array(dark);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const p = y * w + x;
+        if (dark[p]) continue;
+        const i = p * 4;
+        if (src[i + 3] < alphaCut) continue;
+        let hit = false;
+        for (let dy = -1; dy <= 1 && !hit; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (!dx && !dy) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+            if (dark[ny * w + nx]) {
+              hit = true;
+              break;
+            }
+          }
+        }
+        if (!hit) continue;
+        /* Only pull midtones into the stroke — leave bright fills alone. */
+        if (lumaAt(src, i) > lumaCut + 38) continue;
+        grown[p] = 1;
+      }
+    }
+    const out = new ImageData(new Uint8ClampedArray(src), w, h);
+    const dst = out.data;
+    for (let p = 0; p < n; p++) {
+      if (!grown[p] || dark[p]) continue;
+      const i = p * 4;
+      /* Snap toward ink — keeps outline continuous after hard quantize. */
+      dst[i] = Math.max(0, (src[i] * 0.25) | 0);
+      dst[i + 1] = Math.max(0, (src[i + 1] * 0.25) | 0);
+      dst[i + 2] = Math.max(0, (src[i + 2] * 0.25) | 0);
+    }
+    return out;
+  }
+
+  /**
+   * Shrink quantized hi-res beads to a smaller grid by per-cell weighted mode.
+   * Continuity from voting (not outline repair). Dark ink can be weighted higher
+   * so thin strokes win edge cells; tie → darker.
+   */
+  function downsampleModeImageData(imageData, outW, outH, opts) {
+    const o = opts || {};
+    const alphaCut = o.alphaCut != null ? o.alphaCut | 0 : 16;
+    const inkLuma = o.inkLuma != null ? +o.inkLuma : 48;
+    const inkWeight = o.inkWeight != null ? Math.max(1, +o.inkWeight) : 1;
+    const sw = imageData.width;
+    const sh = imageData.height;
+    const ow = Math.max(1, outW | 0);
+    const oh = Math.max(1, outH | 0);
+    const src = imageData.data;
+    const out = new ImageData(ow, oh);
+    const dst = out.data;
+    for (let y = 0; y < oh; y++) {
+      const y0 = Math.floor((y * sh) / oh);
+      const y1 = Math.max(y0 + 1, Math.floor(((y + 1) * sh) / oh));
+      for (let x = 0; x < ow; x++) {
+        const x0 = Math.floor((x * sw) / ow);
+        const x1 = Math.max(x0 + 1, Math.floor(((x + 1) * sw) / ow));
+        const counts = Object.create(null);
+        let bestKey = null;
+        let bestN = 0;
+        let bestLuma = 999;
+        let opaque = 0;
+        for (let yy = y0; yy < y1; yy++) {
+          for (let xx = x0; xx < x1; xx++) {
+            const i = (yy * sw + xx) * 4;
+            if (src[i + 3] < alphaCut) continue;
+            opaque++;
+            const key = src[i] + "," + src[i + 1] + "," + src[i + 2];
+            const lum = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
+            const w = lum <= inkLuma ? inkWeight : 1;
+            const n = (counts[key] = (counts[key] || 0) + w);
+            if (n > bestN || (n === bestN && lum < bestLuma)) {
+              bestN = n;
+              bestKey = key;
+              bestLuma = lum;
+            }
+          }
+        }
+        const oi = (y * ow + x) * 4;
+        if (!opaque || !bestKey) {
+          dst[oi + 3] = 0;
+          continue;
+        }
+        const parts = bestKey.split(",");
+        dst[oi] = +parts[0];
+        dst[oi + 1] = +parts[1];
+        dst[oi + 2] = +parts[2];
+        dst[oi + 3] = 255;
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Drop true 1-bead speckles (no same-color 8-neighbor). Diagonal outline steps
+   * keep a corner neighbor and survive; lone junk beads do not.
+   */
+  function despikeIsolatedBeads(imageData, opts) {
+    const o = opts || {};
+    const alphaCut = o.alphaCut != null ? o.alphaCut | 0 : 16;
+    const w = imageData.width;
+    const h = imageData.height;
+    const src = imageData.data;
+    const out = new ImageData(new Uint8ClampedArray(src), w, h);
+    const dst = out.data;
+    const keyAt = (x, y) => {
+      if (x < 0 || y < 0 || x >= w || y >= h) return null;
+      const i = (y * w + x) * 4;
+      if (src[i + 3] < alphaCut) return null;
+      return src[i] + "," + src[i + 1] + "," + src[i + 2];
+    };
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const self = keyAt(x, y);
+        if (!self) continue;
+        let same = 0;
+        const neigh = Object.create(null);
+        let best = null;
+        let bestN = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (!dx && !dy) continue;
+            const k = keyAt(x + dx, y + dy);
+            if (!k) continue;
+            if (k === self) same++;
+            neigh[k] = (neigh[k] || 0) + 1;
+            if (neigh[k] > bestN) {
+              bestN = neigh[k];
+              best = k;
+            }
+          }
+        }
+        if (same > 0 || !best || best === self) continue;
+        const parts = best.split(",");
+        const i = (y * w + x) * 4;
+        dst[i] = +parts[0];
+        dst[i + 1] = +parts[1];
+        dst[i + 2] = +parts[2];
+      }
+    }
+    return out;
+  }
+
+  /**
+   * @deprecated Outline sandwich fill — prefer hi-res quantize + downsampleMode.
+   */
+  function bridgeSmallBoardGaps(imageData, opts) {
+    const o = opts || {};
+    const alphaCut = o.alphaCut != null ? o.alphaCut | 0 : 16;
+    const lumaCut = o.lumaCut != null ? +o.lumaCut : 48;
+    const glintCut = o.glintCut != null ? +o.glintCut : 200;
+    const passes = o.passes != null ? Math.max(1, Math.min(3, o.passes | 0)) : 2;
+    const w = imageData.width;
+    const h = imageData.height;
+    let cur = new ImageData(new Uint8ClampedArray(imageData.data), w, h);
+
+    function isDark(d, i) {
+      return d[i + 3] >= alphaCut && lumaAt(d, i) <= lumaCut;
+    }
+
+    function bridgeOnce(srcData) {
+      const src = srcData.data;
+      const out = new ImageData(new Uint8ClampedArray(src), w, h);
+      const dst = out.data;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          if (src[i + 3] < alphaCut || isDark(src, i)) continue;
+          /* Keep bright eye glints / white fills inside dark rings. */
+          if (lumaAt(src, i) >= glintCut) continue;
+          const li = x > 0 ? ((y * w + (x - 1)) * 4) : -1;
+          const ri = x + 1 < w ? ((y * w + (x + 1)) * 4) : -1;
+          const ui = y > 0 ? (((y - 1) * w + x) * 4) : -1;
+          const di = y + 1 < h ? (((y + 1) * w + x) * 4) : -1;
+          const left = li >= 0 && isDark(src, li);
+          const right = ri >= 0 && isDark(src, ri);
+          const up = ui >= 0 && isDark(src, ui);
+          const down = di >= 0 && isDark(src, di);
+          let inkI = -1;
+          if (left && right) inkI = li;
+          else if (up && down) inkI = ui;
+          if (inkI < 0) continue;
+          dst[i] = src[inkI];
+          dst[i + 1] = src[inkI + 1];
+          dst[i + 2] = src[inkI + 2];
+          dst[i + 3] = 255;
+        }
+      }
+      return out;
+    }
+
+    for (let p = 0; p < passes; p++) cur = bridgeOnce(cur);
+    return cur;
+  }
+
+  /** @deprecated Prefer bridgeSmallBoardGaps — majority+thicken blobbed Q faces. */
+  function polishSmallBoardQuantized(imageData, opts) {
+    return bridgeSmallBoardGaps(imageData, opts);
+  }
+
+  /**
+   * Light unsharp (src + (src − 3×3 box blur) * amount).
+   * For small bead boards after nearest-neighbor downscale — keeps edges readable.
+   */
+  function sharpenImageData(imageData, amount) {
+    const a = amount != null ? +amount : 0.4;
+    if (!(a > 0)) return imageData;
+    const w = imageData.width;
+    const h = imageData.height;
+    const src = imageData.data;
+    const out = new ImageData(w, h);
+    const dst = out.data;
+    const blur = new Float32Array(w * h * 3);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let sr = 0;
+        let sg = 0;
+        let sb = 0;
+        let n = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= h) continue;
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx;
+            if (xx < 0 || xx >= w) continue;
+            const i = (yy * w + xx) * 4;
+            if (src[i + 3] < 8) continue;
+            sr += src[i];
+            sg += src[i + 1];
+            sb += src[i + 2];
+            n++;
+          }
+        }
+        const o = (y * w + x) * 3;
+        if (n) {
+          blur[o] = sr / n;
+          blur[o + 1] = sg / n;
+          blur[o + 2] = sb / n;
+        } else {
+          const i = (y * w + x) * 4;
+          blur[o] = src[i];
+          blur[o + 1] = src[i + 1];
+          blur[o + 2] = src[i + 2];
+        }
+      }
+    }
+    for (let p = 0; p < w * h; p++) {
+      const i = p * 4;
+      const o = p * 3;
+      dst[i + 3] = src[i + 3];
+      if (src[i + 3] < 8) {
+        dst[i] = dst[i + 1] = dst[i + 2] = 0;
+        continue;
+      }
+      dst[i] = clamp(src[i] + (src[i] - blur[o]) * a, 0, 255);
+      dst[i + 1] = clamp(src[i + 1] + (src[i + 1] - blur[o + 1]) * a, 0, 255);
+      dst[i + 2] = clamp(src[i + 2] + (src[i + 2] - blur[o + 2]) * a, 0, 255);
+    }
+    return out;
+  }
+
   /**
    * Clear solid letterbox / pillarbox bands (uniform rows/cols from a side).
    * Typical contain-fit white pads that block edge-flood from reaching real BG.
@@ -1223,23 +1511,48 @@
     ctx.drawImage(tmp, 0, 0, canvas.width, canvas.height);
   }
 
-  function drawGridOverlay(canvas, cols, rows, scale, color) {
+  /**
+   * Grid lines over a pattern canvas.
+   * opts.gap matches drawBeadGrid (step = cell + gap).
+   * opts.majorEvery / majorColor for thicker every-N lines.
+   */
+  function drawGridOverlay(canvas, cols, rows, scale, color, opts) {
+    const o = opts || {};
+    const cell = Math.max(1, scale | 0);
+    const gap = Math.max(0, o.gap | 0);
+    const step = cell + gap;
+    const majorEvery = Math.max(0, o.majorEvery | 0);
     const ctx = canvas.getContext("2d");
-    const s = scale;
-    ctx.strokeStyle = color || "rgba(0,0,0,0.35)";
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= cols; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x * s + 0.5, 0);
-      ctx.lineTo(x * s + 0.5, rows * s);
-      ctx.stroke();
+    const maxX = gap > 0 ? cols * step - gap : cols * cell;
+    const maxY = gap > 0 ? rows * step - gap : rows * cell;
+    function strokeAt(isMajor) {
+      ctx.strokeStyle = isMajor
+        ? o.majorColor || color || "rgba(0,0,0,0.55)"
+        : color || "rgba(0,0,0,0.35)";
+      ctx.lineWidth = isMajor ? 2 : 1;
+      for (let x = 0; x <= cols; x++) {
+        if (isMajor) {
+          if (majorEvery <= 0 || x % majorEvery !== 0) continue;
+        } else if (majorEvery > 0 && x % majorEvery === 0) continue;
+        const px = Math.min(x * step, maxX) + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, maxY);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= rows; y++) {
+        if (isMajor) {
+          if (majorEvery <= 0 || y % majorEvery !== 0) continue;
+        } else if (majorEvery > 0 && y % majorEvery === 0) continue;
+        const py = Math.min(y * step, maxY) + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(maxX, py);
+        ctx.stroke();
+      }
     }
-    for (let y = 0; y <= rows; y++) {
-      ctx.beginPath();
-      ctx.moveTo(0, y * s + 0.5);
-      ctx.lineTo(cols * s + 0.5, y * s + 0.5);
-      ctx.stroke();
-    }
+    strokeAt(false);
+    if (majorEvery > 0) strokeAt(true);
   }
 
   function isIosDevice() {
@@ -1605,8 +1918,31 @@
     const footer = opts.footer || "";
     const majorEvery = opts.majorEvery != null ? opts.majorEvery : 10;
 
+    /* Explicit beadStyle wins; else printGrid → squares (alignment), no grid → beads. */
+    const useBeads =
+      opts.beadStyle === "beads"
+        ? true
+        : opts.beadStyle === "pixels"
+          ? false
+          : !opts.printGrid;
     const pattern = document.createElement("canvas");
-    if (opts.printGrid) {
+    if (useBeads) {
+      drawBeadGrid(pattern, imageData, cell, 1, { bg: "#f2f2f0" });
+      if (opts.printGrid) {
+        drawGridOverlay(
+          pattern,
+          imageData.width,
+          imageData.height,
+          cell,
+          opts.minorColor || "rgba(0,0,0,0.18)",
+          {
+            gap: 1,
+            majorEvery: majorEvery,
+            majorColor: opts.majorColor || "rgba(0,0,0,0.55)",
+          }
+        );
+      }
+    } else if (opts.printGrid) {
       drawPrintCellGrid(pattern, imageData, cell, {
         bg: "#f2f2f0",
         majorEvery: majorEvery,
@@ -1614,12 +1950,12 @@
         majorColor: opts.majorColor,
       });
     } else {
-      drawBeadGrid(pattern, imageData, cell, 1, { bg: "#f2f2f0" });
+      drawImageData(pattern, imageData, cell);
     }
     if (opts.cellCodes && palette && palette.colors) {
       drawCellCodeOverlay(pattern, imageData, cell, {
-        beads: !opts.printGrid,
-        gap: opts.printGrid ? 0 : 1,
+        beads: useBeads,
+        gap: useBeads ? 1 : 0,
         paletteColors: palette.colors,
         labelFn: opts.labelFn,
         sharp: true,
@@ -1960,6 +2296,12 @@
     paintMaskDisk,
     restoreMaskStroke,
     adjustImageData,
+    sharpenImageData,
+    thickenDarkForSmallBoard,
+    downsampleModeImageData,
+    despikeIsolatedBeads,
+    bridgeSmallBoardGaps,
+    polishSmallBoardQuantized,
     nearestColor,
     extractPalette,
     limitPaletteToBudget,
