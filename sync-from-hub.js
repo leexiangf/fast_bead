@@ -40,6 +40,13 @@ const JS_COPY = [
   "image-utils.js",
   "bead-handlike.js",
   "bead-fs-v2.js",
+  "bead-outline-fs.js",
+  "bead-outline-fs-v2.js",
+  "bead-outline-fs-pale.js",
+  "bead-outline-fs-accent.js",
+  "bead-outline-fs-alpha.js",
+  "bead-outline-fs-dark.js",
+  "bead-outline-fs-neon.js",
   "perler-templates.js",
 ];
 
@@ -65,6 +72,17 @@ const portrait = path.join(HUB, "tools", "perler", "templates", "portrait.jpg");
 if (fs.existsSync(portrait)) {
   copyFile(portrait, path.join(ROOT, "templates", "portrait.jpg"));
 }
+
+const MONOREPO_DOCS = path.join(ROOT, "..", "docs");
+[
+  "bead-fs-v2-algorithm.md",
+  "bead-handlike-algorithm.md",
+  "bead-outline-fs.md",
+].forEach((name) => {
+  const from = path.join(MONOREPO_DOCS, name);
+  if (fs.existsSync(from)) copyFile(from, path.join(ROOT, "docs", name));
+  else console.warn("WARN skip doc:", name);
+});
 
 let html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 
@@ -244,9 +262,17 @@ for (const m of must) {
     console.warn("WARN feature marker missing in html:", m);
   }
 }
-["btn-crop", "btn-cutout", "crop-modal", "edit-clean", "bead-place-zones", "chrome-oss"].forEach(
-  (m) => {
-    if (!html.includes(m)) console.warn("WARN missing in html:", m);
-    else console.log("ok", m);
-  }
-);
+[
+  "btn-crop",
+  "btn-cutout",
+  "crop-modal",
+  "edit-clean",
+  "bead-place-zones",
+  "chrome-oss",
+  "bead-outline-fs",
+  "outline-fs-neon",
+  "FGBeadOutlineFs",
+].forEach((m) => {
+  if (!html.includes(m)) console.warn("WARN missing in html:", m);
+  else console.log("ok", m);
+});

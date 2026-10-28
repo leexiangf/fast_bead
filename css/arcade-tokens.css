@@ -206,6 +206,7 @@ body.arcade-ui .tool-hero {
   overflow: visible;
 }
 
+body.arcade-ui .tool-hero__row h1,
 body.arcade-ui .tool-hero h1 {
   font-size: clamp(1.7rem, 4.2vw, 2.3rem);
   font-weight: 400; /* round display faces are often single-weight; avoid faux-bold */
@@ -220,6 +221,10 @@ body.arcade-ui .tool-hero h1 {
     0 1px 0 rgba(255, 248, 252, 0.35),
     0 -1px 0 rgba(255, 248, 252, 0.25),
     0 0 22px rgba(255, 140, 200, 0.45);
+}
+
+body.arcade-ui .tool-hero__row h1 {
+  margin-bottom: 0;
 }
 
 body.arcade-ui .tool-hero p {

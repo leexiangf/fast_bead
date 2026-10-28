@@ -727,6 +727,17 @@
     return out;
   }
 
+  function beadBgIsDark(bg) {
+    const s = String(bg || "#1a1f28").trim();
+    const m = /^#?([0-9a-f]{6})$/i.exec(s);
+    if (!m) return true;
+    const n = parseInt(m[1], 16);
+    const r = (n >> 16) & 255;
+    const g = (n >> 8) & 255;
+    const b = n & 255;
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 140;
+  }
+
   /** Draw quantized cells as circles (perler-like preview / export). */
   function drawBeadGrid(canvas, imageData, cell, gap, opts) {
     const o = opts && typeof opts === "object" && !Array.isArray(opts) ? opts : {};
@@ -738,16 +749,37 @@
     canvas.width = cols * step - (g > 0 ? g : 0);
     canvas.height = rows * step - (g > 0 ? g : 0);
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = o.bg || "#1a1f28";
+    const bg = o.bg || "#1a1f28";
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     const d = imageData.data;
     const rBead = csize * 0.46;
+    /* Transparent exterior (outline-fs cutout) still needs empty peg slots. */
+    const showEmpty = o.showEmpty !== false;
+    const darkBg = beadBgIsDark(bg);
+    const emptyFill =
+      o.emptyFill || (darkBg ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)");
+    const emptyStroke =
+      o.emptyStroke || (darkBg ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.14)");
+    const emptyLw = Math.max(1, csize * 0.05);
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
         const i = (y * cols + x) * 4;
-        if (d[i + 3] < 16) continue;
         const cx = x * step + csize / 2;
         const cy = y * step + csize / 2;
+        if (d[i + 3] < 16) {
+          if (!showEmpty) continue;
+          ctx.beginPath();
+          ctx.arc(cx, cy, rBead, 0, Math.PI * 2);
+          ctx.fillStyle = emptyFill;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(cx, cy, rBead * 0.92, 0, Math.PI * 2);
+          ctx.strokeStyle = emptyStroke;
+          ctx.lineWidth = emptyLw;
+          ctx.stroke();
+          continue;
+        }
         ctx.beginPath();
         ctx.arc(cx, cy, rBead, 0, Math.PI * 2);
         ctx.fillStyle = rgbToHex(d[i], d[i + 1], d[i + 2]);
@@ -907,10 +939,79 @@
     );
   }
 
+  /**
+   * Shrink a craft palette to maxColors by image usage (nearest match counts).
+   * Always keeps nearest-black and nearest-white for outlines / eye glints.
+   */
+  function limitPaletteToBudget(imageData, paletteColors, maxColors, alphaCut) {
+    const cut = alphaCut != null ? alphaCut : 16;
+    const nMax = Math.max(2, maxColors | 0);
+    if (!paletteColors || !paletteColors.length || paletteColors.length <= nMax) {
+      return paletteColors;
+    }
+    const counts = new Float64Array(paletteColors.length);
+    const d = imageData.data;
+    const step = Math.max(1, Math.floor((imageData.width * imageData.height) / 12000));
+    let pix = 0;
+    for (let i = 0; i < d.length; i += 4, pix++) {
+      if (pix % step !== 0) continue;
+      if (d[i + 3] < cut) continue;
+      let best = 0;
+      let bestD = Infinity;
+      for (let k = 0; k < paletteColors.length; k++) {
+        const rgb = paletteColors[k].rgb || [0, 0, 0];
+        const dd = dist2([d[i], d[i + 1], d[i + 2]], rgb);
+        if (dd < bestD) {
+          bestD = dd;
+          best = k;
+        }
+      }
+      counts[best]++;
+    }
+
+    function nearestIdx(tr, tg, tb) {
+      let best = 0;
+      let bestD = Infinity;
+      for (let k = 0; k < paletteColors.length; k++) {
+        const rgb = paletteColors[k].rgb || [0, 0, 0];
+        const dd = dist2([tr, tg, tb], rgb);
+        if (dd < bestD) {
+          bestD = dd;
+          best = k;
+        }
+      }
+      return best;
+    }
+
+    const keep = new Set();
+    keep.add(nearestIdx(0, 0, 0));
+    keep.add(nearestIdx(255, 255, 255));
+    const order = [];
+    for (let k = 0; k < paletteColors.length; k++) order.push(k);
+    order.sort((a, b) => counts[b] - counts[a]);
+    for (let i = 0; i < order.length && keep.size < nMax; i++) {
+      keep.add(order[i]);
+    }
+    const out = [];
+    for (let k = 0; k < paletteColors.length; k++) {
+      if (keep.has(k)) out.push(paletteColors[k]);
+    }
+    return out.length ? out : paletteColors.slice(0, nMax);
+  }
+
   function quantizeImageData(imageData, paletteColors, opts) {
     const dither = (opts && opts.dither) || "none";
     const alphaCut = (opts && opts.alphaCut) != null ? opts.alphaCut : 16;
     const strength = opts && opts.ditherStrength != null ? opts.ditherStrength : 1;
+    let colors = paletteColors;
+    if (opts && opts.maxColors != null && +opts.maxColors > 0) {
+      colors = limitPaletteToBudget(
+        imageData,
+        paletteColors,
+        +opts.maxColors,
+        alphaCut
+      );
+    }
     const out = new ImageData(imageData.width, imageData.height);
     const src = imageData.data;
     const dst = out.data;
@@ -924,7 +1025,7 @@
           dst[i + 3] = 0;
           continue;
         }
-        const c = nearestColor(src[i], src[i + 1], src[i + 2], paletteColors);
+        const c = nearestColor(src[i], src[i + 1], src[i + 2], colors);
         dst[i] = c.rgb[0];
         dst[i + 1] = c.rgb[1];
         dst[i + 2] = c.rgb[2];
@@ -954,7 +1055,7 @@
             clamp(src[i] + t, 0, 255),
             clamp(src[i + 1] + t, 0, 255),
             clamp(src[i + 2] + t, 0, 255),
-            paletteColors
+            colors
           );
           dst[i] = c.rgb[0];
           dst[i + 1] = c.rgb[1];
@@ -982,7 +1083,7 @@
         const r = clamp(buf[i], 0, 255);
         const g = clamp(buf[i + 1], 0, 255);
         const b = clamp(buf[i + 2], 0, 255);
-        const c = nearestColor(r, g, b, paletteColors);
+        const c = nearestColor(r, g, b, colors);
         dst[i] = c.rgb[0];
         dst[i + 1] = c.rgb[1];
         dst[i + 2] = c.rgb[2];
@@ -1861,6 +1962,7 @@
     adjustImageData,
     nearestColor,
     extractPalette,
+    limitPaletteToBudget,
     quantizeImageData,
     mergeSparseColors,
     countColors,

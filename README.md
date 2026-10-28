@@ -16,6 +16,8 @@ Free open-source **Perler bead pattern maker**: turn a photo into a printable pa
 - **Photo → pattern**: Sample by bead grid; presets for photo fidelity, detail, hand-drawn look, and custom size / color count.
 - **Multi-brand palettes**: Built-in MARD, COCO, Manman, Panpan, Mixiaowo, Artkal, Perler, Hama, and more — patterns ship with real color codes.
 - **FS v2 / hand-like pipelines**: Quantize and dither paths tuned for illustration and photos, cleaner blocks with fewer muddy edges.
+- **Outline FS sticker pipelines**: Multiple outline-fs presets (neon / pale / dark, etc.) for illustration-sticker style boards; see `docs/bead-outline-fs.md`.
+- **Crop & retouch**: Drag crop with aspect-aware grid sizing; retouch sheet for denoise / near-white / island cleanup; optional brush matte for cutout.
 - **Background remove & edit**: One-tap outer background cut (tolerance); paint, bucket, recolor, eraser, region erase, with undo.
 - **Sparse color merge**: Merge speckles by similarity threshold for cleaner boards and simpler shopping lists.
 - **Inventory colors**: Mark beads you already own; optionally rematch using stock-only colors.

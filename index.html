@@ -95,11 +95,22 @@
               <div class="field">
                 <label for="dither" data-i18n="perler.dither"></label>
                 <select id="dither">
-                  <option value="fs" selected data-i18n="perler.dither.fs"></option>
-                  <option value="fs-v2" data-i18n="perler.dither.fsV2"></option>
-                  <option value="bayer" data-i18n="perler.dither.bayer"></option>
-                  <option value="none" data-i18n="perler.dither.none"></option>
-                  <option value="handlike" data-i18n="perler.dither.handlike"></option>
+                  <optgroup data-i18n-attr="label:perler.dither.group.photoBlocks">
+                    <option value="fs" selected data-i18n="perler.dither.fs"></option>
+                    <option value="fs-v2" data-i18n="perler.dither.fsV2"></option>
+                    <option value="none" data-i18n="perler.dither.none"></option>
+                    <option value="handlike" data-i18n="perler.dither.handlike"></option>
+                    <option value="bayer" data-i18n="perler.dither.bayer"></option>
+                  </optgroup>
+                  <optgroup data-i18n-attr="label:perler.dither.group.sticker">
+                    <option value="outline-fs" data-i18n="perler.dither.outlineFs"></option>
+                    <option value="outline-fs-v2" data-i18n="perler.dither.outlineFsV2"></option>
+                    <option value="outline-fs-pale" data-i18n="perler.dither.outlineFsPale"></option>
+                    <option value="outline-fs-accent" data-i18n="perler.dither.outlineFsAccent"></option>
+                    <option value="outline-fs-alpha" data-i18n="perler.dither.outlineFsAlpha"></option>
+                    <option value="outline-fs-dark" data-i18n="perler.dither.outlineFsDark"></option>
+                    <option value="outline-fs-neon" data-i18n="perler.dither.outlineFsNeon"></option>
+                  </optgroup>
                 </select>
               </div>
             </div>
@@ -125,6 +136,22 @@
               <div class="field" id="field-ncolors">
                 <label for="ncolors" data-i18n="perler.ncolors"></label>
                 <input id="ncolors" type="number" min="8" max="48" value="28" />
+              </div>
+            </div>
+          </div>
+
+          <div class="params-pair params-pair--sparse">
+            <div class="params-cell params-cell--span">
+              <div class="edit-sparse" id="edit-sparse">
+                <div class="edit-sparse__title" data-i18n="perler.sparse.title"></div>
+                <div class="edit-sparse__row">
+                  <label for="sparse-thr">
+                    <span data-i18n="perler.sparse.thr"></span>
+                    <input id="sparse-thr" type="number" min="1" max="20" value="5" step="1" />
+                  </label>
+                  <button type="button" class="btn btn--ghost" id="btn-sparse-merge" data-i18n="perler.sparse.merge"></button>
+                </div>
+                <p class="edit-sparse__hint" data-i18n="perler.sparse.hint"></p>
               </div>
             </div>
           </div>
@@ -175,22 +202,6 @@
                   <input id="erase-brush" type="range" min="1" max="5" value="1" />
                 </div>
                 <div class="edit-swatches" id="edit-swatches"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="params-pair params-pair--sparse">
-            <div class="params-cell params-cell--span">
-              <div class="edit-sparse" id="edit-sparse">
-                <div class="edit-sparse__title" data-i18n="perler.sparse.title"></div>
-                <div class="edit-sparse__row">
-                  <label for="sparse-thr">
-                    <span data-i18n="perler.sparse.thr"></span>
-                    <input id="sparse-thr" type="number" min="1" max="20" value="5" step="1" />
-                  </label>
-                  <button type="button" class="btn btn--ghost" id="btn-sparse-merge" data-i18n="perler.sparse.merge"></button>
-                </div>
-                <p class="edit-sparse__hint" data-i18n="perler.sparse.hint"></p>
               </div>
             </div>
           </div>
@@ -663,12 +674,19 @@
   <script src="./js/image-utils.js"></script>
   <script src="./js/bead-handlike.js"></script>
   <script src="./js/bead-fs-v2.js"></script>
+  <script src="./js/bead-outline-fs.js"></script>
+  <script src="./js/bead-outline-fs-v2.js"></script>
+  <script src="./js/bead-outline-fs-pale.js"></script>
+  <script src="./js/bead-outline-fs-accent.js"></script>
+  <script src="./js/bead-outline-fs-alpha.js"></script>
+  <script src="./js/bead-outline-fs-dark.js"></script>
+  <script src="./js/bead-outline-fs-neon.js"></script>
   <script src="./js/perler-templates.js"></script>
   <script src="./js/bead-level-stub.js"></script>
   <script src="./js/tool-stub.js"></script>
   <script>
     (function () {
-      const { FGPalettes, FGBeadStock, FGImage, FGBeadHandlike, FGBeadFsV2, FGBeadStructure, FGi18n, FGTool, FGBeadLevel, FGPerlerTemplates } = window;
+      const { FGPalettes, FGBeadStock, FGImage, FGBeadHandlike, FGBeadFsV2, FGBeadOutlineFs, FGBeadOutlineFsV2, FGBeadOutlineFsPale, FGBeadOutlineFsAccent, FGBeadOutlineFsAlpha, FGBeadOutlineFsDark, FGBeadOutlineFsNeon, FGBeadStructure, FGi18n, FGTool, FGBeadLevel, FGPerlerTemplates } = window;
       const t = (k) => FGi18n.t(k);
       const drop = document.getElementById("drop");
       const btnRotate = document.getElementById("btn-rotate");
@@ -2669,12 +2687,12 @@
       })();
 
       function syncNField() {
-        const dither = ditherEl && ditherEl.value;
-        const needBudget = dither === "handlike" || dither === "fs-v2";
-        fieldN.hidden = palEl.value !== "auto" && !needBudget;
+        /* Auto palette → extract count; craft palette → budget for every dither. */
+        fieldN.hidden = false;
         const nLabel = fieldN && fieldN.querySelector('label[for="ncolors"]');
         if (nLabel) {
-          const key = needBudget ? "perler.ncolors.budget" : "perler.ncolors";
+          const key =
+            palEl.value === "auto" ? "perler.ncolors" : "perler.ncolors.budget";
           nLabel.setAttribute("data-i18n", key);
           nLabel.textContent = t(key);
         }
@@ -4227,36 +4245,85 @@
           data = FGImage.clearNearWhite(data).data;
         }
         const palette = resolvePalette(data);
-        /* Handlike / FS V2 are separate modules — never routed through FGImage.quantizeImageData. */
+        /* Handlike / FS V2 / Outline+FS are separate modules — never mixed into FGImage path. */
         let quantized;
-        const budget = Math.max(0, Math.min(64, +nEl.value || 0));
+        const budget = Math.max(2, Math.min(64, +nEl.value || 28));
+        const maxColors = Math.min(budget, palette.colors.length);
+        const outlineApis = {
+          "outline-fs": { api: FGBeadOutlineFs, tip: "perler.tip.outlineFs", track: "outline_fs" },
+          "outline-fs-v2": { api: FGBeadOutlineFsV2, tip: "perler.tip.outlineFsV2", track: "outline_fs_v2" },
+          "outline-fs-pale": { api: FGBeadOutlineFsPale, tip: "perler.tip.outlineFsPale", track: "outline_fs_pale" },
+          "outline-fs-accent": { api: FGBeadOutlineFsAccent, tip: "perler.tip.outlineFsAccent", track: "outline_fs_accent" },
+          "outline-fs-alpha": { api: FGBeadOutlineFsAlpha, tip: "perler.tip.outlineFsAlpha", track: "outline_fs_alpha" },
+          "outline-fs-dark": { api: FGBeadOutlineFsDark, tip: "perler.tip.outlineFsDark", track: "outline_fs_dark" },
+          "outline-fs-neon": { api: FGBeadOutlineFsNeon, tip: "perler.tip.outlineFsNeon", track: "outline_fs_neon" },
+        };
+        const outlinePick = outlineApis[dither];
+        const isOutlineFs = !!outlinePick;
         const useCartoonV2 =
-          FGBeadFsV2 && dither !== "handlike" && (dither === "fs-v2" || isFlatArt);
+          FGBeadFsV2 &&
+          dither !== "handlike" &&
+          !isOutlineFs &&
+          (dither === "fs-v2" || isFlatArt);
         if (useCartoonV2) {
-          const opts = { contentMode: "flat", snapEdges: true };
-          if (palEl.value === "auto" || budget > 0) {
-            opts.maxColors = Math.min(budget || 16, palette.colors.length);
-          }
+          const opts = {
+            contentMode: "flat",
+            snapEdges: true,
+            maxColors: maxColors,
+          };
           quantized = FGBeadFsV2.quantizeImageData(data, palette.colors, opts);
           FGTool.track("perler", dither === "fs-v2" ? "cartoon_v2" : "flat_art_pipeline");
           if (tip) {
             tip.setAttribute("data-i18n", "perler.tip.flatArt");
             tip.textContent = t("perler.tip.flatArt");
           }
+        } else if (isOutlineFs) {
+          try {
+            if (!outlinePick.api) throw new Error("outline module missing");
+            quantized = outlinePick.api.quantizeImageData(data, palette.colors, {
+              ditherStrength: 0.85,
+              maxColors: maxColors,
+            });
+            FGTool.track("perler", outlinePick.track);
+            if (tip) {
+              tip.setAttribute("data-i18n", outlinePick.tip);
+              tip.textContent = t(outlinePick.tip);
+            }
+          } catch (err) {
+            console.warn("[" + dither + "] failed, falling back to FS", err);
+            quantized = FGImage.quantizeImageData(data, palette.colors, {
+              dither: "fs",
+              ditherStrength: 0.85,
+              maxColors: maxColors,
+            });
+          }
         } else if (dither === "handlike" && FGBeadHandlike) {
           quantized = FGBeadHandlike.quantizeImageData(data, palette.colors, {
-            maxColors: Math.min(Math.max(2, budget || 24), palette.colors.length),
+            maxColors: maxColors,
           });
         } else {
+          const d =
+            dither === "none"
+              ? "none"
+              : dither === "bayer"
+                ? "bayer"
+                : "fs";
           quantized = FGImage.quantizeImageData(data, palette.colors, {
-            dither: dither === "none" ? "none" : dither,
-            ditherStrength: dither === "fs" ? 0.85 : 1,
+            dither: d,
+            ditherStrength: d === "fs" ? 0.85 : 1,
+            maxColors: maxColors,
           });
         }
-        if (cleanSmoothEl && cleanSmoothEl.checked && FGImage.smoothMajorityImageData) {
+        /* Majority smooth eats 1-bead black outlines — never apply after outline-fs. */
+        if (
+          !isOutlineFs &&
+          cleanSmoothEl &&
+          cleanSmoothEl.checked &&
+          FGImage.smoothMajorityImageData
+        ) {
           quantized = FGImage.smoothMajorityImageData(quantized);
         }
-        if (!isFlatArt && dither !== "fs-v2" && tip) {
+        if (!isFlatArt && dither !== "fs-v2" && !isOutlineFs && tip) {
           tip.setAttribute("data-i18n", tipKey);
           tip.textContent = t(tipKey);
         }
